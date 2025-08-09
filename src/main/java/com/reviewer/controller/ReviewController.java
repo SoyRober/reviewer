@@ -1,6 +1,9 @@
 package com.reviewer.controller;
 
+import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewRequest;
+import com.reviewer.dto.response.EvaluationResponse;
+import com.reviewer.dto.response.PaginationResponse;
 import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.service.ReviewService;
 import jakarta.validation.Valid;
@@ -20,4 +23,14 @@ public class ReviewController {
     public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request) {
         return ResponseEntity.ok(reviewService.create(request));
     }
+
+    @GetMapping("/project/{project}")
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProject(@PathVariable String project, @ModelAttribute @Valid PaginationRequest request) {
+        return ResponseEntity.ok(reviewService.getFromProject(project, request));
+    }
+
+//    @GetMapping("/client/{address}")
+//    public ResponseEntity<List<ReviewResponse>> paginateReviewsFromProject(@PathVariable String project) {
+//
+//    }
 }

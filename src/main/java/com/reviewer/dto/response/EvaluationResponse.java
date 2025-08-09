@@ -1,25 +1,20 @@
 package com.reviewer.dto.response;
 
-import com.reviewer.dto.request.EvaluationRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class EvaluationResponse {
-    private String clientAddress;
+    private Long trust;
 
-    private String projectAddress;
+    private Long security;
 
-    private String comment;
+    private Long tokenomics;
 
-    private Instant createdAt;
+    private Long community;
 
-    private Instant updatedAt;
-
-    private EvaluationRequest evaluation;
+    private Long potential;
 }

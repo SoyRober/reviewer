@@ -5,22 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewResponse {
-    private String clientAddress;
-
+public class ReviewSummaryResponse {
     private String projectAddress;
 
-    private String comment;
+    private EvaluationSummaryResponse evaluationSummaryResponse;
 
-    private Instant createdAt;
+    private Float average;
 
-    private Instant updatedAt;
-
-    private EvaluationResponse evaluation;
+    private List<ReviewResponse> lastReviews;
 }
