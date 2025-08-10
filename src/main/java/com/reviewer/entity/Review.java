@@ -9,7 +9,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
-import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -25,10 +24,8 @@ public class Review {
     @Id
     private UUID id;
 
-    @Indexed(unique = true)
     private String clientAddress;
 
-    @Indexed(unique = true)
     private String projectAddress;
 
     private String comment;
@@ -40,5 +37,5 @@ public class Review {
 
     private Evaluation evaluation;
 
-    private Boolean isBanned = false;
+    private Boolean isActive = false;
 }
