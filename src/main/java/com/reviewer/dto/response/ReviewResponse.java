@@ -23,4 +23,6 @@ public class ReviewResponse {
     private Instant updatedAt;
 
     private EvaluationResponse evaluation;
+
+    private Float average;
 }
