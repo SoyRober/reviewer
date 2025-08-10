@@ -17,7 +17,7 @@ public interface ReviewMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "isBanned", ignore = true)
+    @Mapping(target = "isActive", ignore = true)
     void updateReviewFromReviewRequest(ReviewRequest request, @MappingTarget Review review);
 
     ReviewResponse toReviewResponse(Review review);
