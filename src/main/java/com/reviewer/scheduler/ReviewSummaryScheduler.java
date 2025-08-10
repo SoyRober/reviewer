@@ -48,8 +48,21 @@ public class ReviewSummaryScheduler {
             // Construye el objeto EvaluationSummary
             EvaluationSummary evaluationSummary = new EvaluationSummary();
             BeanUtils.copyProperties(summaryValues, evaluationSummary);
+            Long totalReviews = reviewService.countProjectReviews(projectAddress);
 
-            reviewSummaryService.update(projectAddress, evaluationSummary);
+            Long totalSumOfAllColumns = 0L;
+            for (Long value : summaryValues.values()) {
+                totalSumOfAllColumns += value;
+            }
+
+            int numberOfEvaluationColumns = evaluationColumns.size();
+            Float avg = 0f;
+            if (totalReviews != null && totalReviews > 0) {
+                long totalEvaluations = totalReviews * numberOfEvaluationColumns;
+                avg = (float) totalSumOfAllColumns / totalEvaluations;
+            }
+
+            reviewSummaryService.update(projectAddress, evaluationSummary, totalReviews, avg);
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.reviewer.service;
 
-import com.reviewer.entity.Review;
 import com.reviewer.entity.ReviewSummary;
 import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewSummaryRepo;
@@ -22,11 +21,7 @@ public class ReviewSummaryService {
         return reviewSummaryRepo.findProjectAddressBy();
     }
 
-    public void save(ReviewSummary newSummary) {
-        reviewSummaryRepo.save(newSummary);
-    }
-
-    public void update(String projectAddress, EvaluationSummary evaluationSummary) {
+    public void update(String projectAddress, EvaluationSummary evaluationSummary, Long totalReviews, Float avg) {
         Optional<ReviewSummary> existingSummary = reviewSummaryRepo.findByProjectAddress(projectAddress);
 
         // Creates or updates
@@ -34,13 +29,9 @@ public class ReviewSummaryService {
         newSummary.setProjectAddress(projectAddress);
         newSummary.setEvaluationSummary(evaluationSummary);
         newSummary.setId(UUID.randomUUID());
+        newSummary.setTotalReviews(totalReviews);
+        newSummary.setAverage(avg);
 
         reviewSummaryRepo.save(newSummary);
     }
-
-//    No hace falta, siempre se actualiza cada hora
-//    public List<ReviewSummary> findNotUpdated() {
-//        Instant oneHourAgo = Instant.now().minusSeconds(3600);
-//        return reviewSummaryRepo.findByUpdatedAtBefore(oneHourAgo);
-//    }
 }
