@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.*;
 public class ReviewController {
     private final ReviewService reviewService;
 
-    @PostMapping
-    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request, @RequestParam String projectId) throws IllegalAccessException {
+    @PostMapping("/{projectId}")
+    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request, @PathVariable String projectId) throws IllegalAccessException {
         return ResponseEntity.ok(reviewService.create(request, projectId));
     }
 
