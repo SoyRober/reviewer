@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewSummaryResponse {
-    private String projectAddress;
+    private String projectContract;
 
     private EvaluationSummaryResponse evaluationSummaryResponse;
 

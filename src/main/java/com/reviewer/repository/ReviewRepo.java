@@ -11,13 +11,17 @@ import java.util.UUID;
 
 @Repository
 public interface ReviewRepo extends MongoRepository<Review, UUID> {
-    Optional<Review> findByClientAddressAndProjectAddress(String clientAddress, String projectAddress);
+    Optional<Review> findByClientAddressAndProjectContract(String clientAddress, String projectContract);
 
-    Page<Review> findByProjectAddress(String project, Pageable pageable);
+    Page<Review> findByProjectContract(String project, Pageable pageable);
 
-    Review findFirstByProjectAddressOrderByCreatedAtDesc(String project);
+    Review findFirstByProjectContractOrderByCreatedAtDesc(String project);
 
-    Page<Review> findByProjectAddressAndIsActiveFalse(String project, Pageable pageable);
+    Page<Review> findByProjectContractAndIsActiveFalse(String projectContract, Pageable pageable);
 
-    Long countByProjectAddress(String projectAddress);
+    Long countByProjectContract(String projectContract);
+
+    Page<Review> findByClientAddressAndIsActiveFalse(String client, Pageable pageable);
+
+    Page<Review> findByClientAddress(String client, Pageable pageable);
 }

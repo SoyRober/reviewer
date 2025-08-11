@@ -18,7 +18,7 @@ public class ReviewRequest {
 
     @NotNull
     @NotBlank
-    private String projectAddress;
+    private String projectContract;
 
     private String comment;
 

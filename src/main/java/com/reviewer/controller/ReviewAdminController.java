@@ -1,6 +1,7 @@
 package com.reviewer.controller;
 
 import com.reviewer.dto.request.PaginationRequest;
+import com.reviewer.dto.request.ReviewRequest;
 import com.reviewer.dto.response.PaginationResponse;
 import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.service.ReviewService;
@@ -22,5 +23,12 @@ public class ReviewAdminController {
                                                                                               @ModelAttribute @Valid PaginationRequest request,
                                                                                               @RequestParam(defaultValue = "true") Boolean isActive) {
         return ResponseEntity.ok(reviewService.getFromProject(project, request, isActive));
+    }
+
+    @GetMapping("/client/{client}")
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromClient(@PathVariable String client,
+                                                                                        @ModelAttribute @Valid PaginationRequest request,
+                                                                                        @RequestParam(defaultValue = "true") Boolean isActive) {
+        return ResponseEntity.ok(reviewService.getFromClient(client, request, isActive));
     }
 }

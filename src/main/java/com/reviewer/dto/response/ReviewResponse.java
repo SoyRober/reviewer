@@ -14,7 +14,7 @@ import java.time.Instant;
 public class ReviewResponse {
     private String clientAddress;
 
-    private String projectAddress;
+    private String projectContract;
 
     private String comment;
 

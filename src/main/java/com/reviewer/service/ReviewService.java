@@ -7,7 +7,6 @@ import com.reviewer.dto.response.PaginationResponse;
 import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.entity.Review;
 import com.reviewer.mapper.ReviewMapper;
-import com.reviewer.model.Evaluation;
 import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewRepo;
 import jakarta.validation.Valid;
@@ -25,11 +24,8 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
@@ -43,7 +39,7 @@ public class ReviewService {
     private final ReviewSummaryService reviewSummaryService;
 
     public ReviewResponse create(ReviewRequest request) throws IllegalAccessException {
-        Review review = reviewRepo.findByClientAddressAndProjectAddress(request.getClientAddress(), request.getProjectAddress())
+        Review review = reviewRepo.findByClientAddressAndProjectContract(request.getClientAddress(), request.getProjectContract())
                 .orElse(new Review());
 
         if (review.getId() == null) {
@@ -59,15 +55,15 @@ public class ReviewService {
                     .tokenomicsSummary(request.getEvaluation().getTokenomics())
                     .trustSummary(request.getEvaluation().getTrust())
                     .build();
-            reviewSummaryService.update(request.getProjectAddress(), evaluationSummary, countProjectReviews(request.getProjectAddress()), 0f);
+            reviewSummaryService.update(request.getProjectContract(), evaluationSummary, countProjectReviews(request.getProjectContract()), 0f);
         }
 
         ReviewResponse response = reviewMapper.toReviewResponse(review);
-        response.setAverage(calculateAvg(response.getEvaluation(), review.getProjectAddress()));
+        response.setAverage(calculateAvg(response.getEvaluation()));
         return response;
     }
 
-    private Float calculateAvg(EvaluationResponse evaluation, String projectAddress) throws IllegalAccessException {
+    private Float calculateAvg(EvaluationResponse evaluation) throws IllegalAccessException {
         long totalSum = 0L;
         int numberOfFields = 0;
 
@@ -77,15 +73,15 @@ public class ReviewService {
         for (Field field : fields) {
             // Asegurarse de que el campo sea accesible (en caso de que sea privado)
             field.setAccessible(true);
-                // Obtener el valor del campo del objeto 'evaluation'
-                // El valor se leerá como un Long, según la definición de la clase
-                Long value = (Long) field.get(evaluation);
+            // Obtener el valor del campo del objeto 'evaluation'
+            // El valor se leerá como un Long, según la definición de la clase
+            Long value = (Long) field.get(evaluation);
 
-                // Si el valor no es nulo, sumarlo al total
-                if (value != null) {
-                    totalSum += value;
-                    numberOfFields++;
-                }
+            // Si el valor no es nulo, sumarlo al total
+            if (value != null) {
+                totalSum += value;
+                numberOfFields++;
+            }
         }
 
         // Evitar una división por cero
@@ -97,27 +93,12 @@ public class ReviewService {
     }
 
     public PaginationResponse<ReviewResponse> getFromProject(String project, @Valid PaginationRequest request, boolean isActive) {
-        Sort.Direction sortDirection = Sort.Direction.ASC;
-        String direction = request.isDirection() ? "desc" : "asc";
-
-        try {
-            sortDirection = Sort.Direction.fromString(direction);
-            log.error("Sort direction provided: {}", direction);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid sort direction provided: {}. Defaulting to ASC.", direction);
-        }
-
-        List<String> validSortByFields = List.of("clientAddress", "projectAddress", "createdAt", "isActive");
-        String actualSortByField = validSortByFields.contains(request.getSortBy().trim()) ?
-                request.getSortBy().trim() :
-                "createdAt";
-
-        Sort sort = Sort.by(sortDirection, actualSortByField);
+        Sort sort = getDirectionAndField(request.isDirection(), request.getSortBy());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<Review> reviews = isActive ?
-                reviewRepo.findByProjectAddress(project, pageable) :
-                reviewRepo.findByProjectAddressAndIsActiveFalse(project, pageable);
+                reviewRepo.findByProjectContract(project, pageable) :
+                reviewRepo.findByProjectContractAndIsActiveFalse(project, pageable);
 
         return PaginationResponse.<ReviewResponse>builder()
                 .content(reviewMapper.toReviewResponseList(reviews.getContent()))
@@ -126,12 +107,12 @@ public class ReviewService {
     }
 
     public Review findRecent(String project) {
-        return reviewRepo.findFirstByProjectAddressOrderByCreatedAtDesc(project);
+        return reviewRepo.findFirstByProjectContractOrderByCreatedAtDesc(project);
     }
 
     public Long sumAllColumnValueByProject(String column, String project) {
         Aggregation aggregation = newAggregation(
-                match(Criteria.where("projectAddress").is(project)),
+                match(Criteria.where("projectContract").is(project)),
                 group().sum("evaluation." + column).as("totalSum")
         );
 
@@ -146,7 +127,40 @@ public class ReviewService {
         return result != null ? result.getLong("totalSum") : 0L;
     }
 
-    public Long countProjectReviews(String projectAddress) {
-        return reviewRepo.countByProjectAddress(projectAddress);
+    public Long countProjectReviews(String projectContract) {
+        return reviewRepo.countByProjectContract(projectContract);
+    }
+
+    public PaginationResponse<ReviewResponse> getFromClient(String client, @Valid PaginationRequest request, boolean isActive) {
+        Sort sort = getDirectionAndField(request.isDirection(), request.getSortBy());
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Page<Review> reviews = isActive ?
+                reviewRepo.findByClientAddress(client, pageable) :
+                reviewRepo.findByClientAddressAndIsActiveFalse(client, pageable);
+
+        return PaginationResponse.<ReviewResponse>builder()
+                .content(reviewMapper.toReviewResponseList(reviews.getContent()))
+                .totalElements(reviews.getTotalElements())
+                .build();
+    }
+
+    private Sort getDirectionAndField (boolean directionBool, String sortBy) {
+        Sort.Direction sortDirection = Sort.Direction.ASC;
+        String direction = directionBool ? "desc" : "asc";
+
+        try {
+            sortDirection = Sort.Direction.fromString(direction);
+            log.error("Sort direction provided: {}", direction);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid sort direction provided: {}. Defaulting to ASC.", direction);
+        }
+
+        List<String> validSortByFields = List.of("clientAddress", "projectContract", "createdAt", "isActive");
+        String actualSortByField = validSortByFields.contains(sortBy.trim()) ?
+                sortBy.trim() :
+                "createdAt";
+
+        return Sort.by(sortDirection, actualSortByField);
     }
 }
