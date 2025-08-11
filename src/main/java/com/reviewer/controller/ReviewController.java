@@ -29,13 +29,6 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getFromProject(project, request, true));
     }
 
-    @GetMapping("/admin/project/{project}")
-    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProjectAdmin(@PathVariable String project,
-                                                                                              @ModelAttribute @Valid PaginationRequest request,
-                                                                                              @RequestParam(defaultValue = "true") Boolean isActive) {
-        return ResponseEntity.ok(reviewService.getFromProject(project, request, isActive));
-    }
-
 //    @GetMapping("/client/{address}")
 //    public ResponseEntity<List<ReviewResponse>> paginateReviewsFromProject(@PathVariable String project) {
 //
