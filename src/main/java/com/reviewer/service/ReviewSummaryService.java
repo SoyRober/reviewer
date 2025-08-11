@@ -18,15 +18,15 @@ public class ReviewSummaryService {
     private final ReviewSummaryRepo reviewSummaryRepo;
 
     public List<String> findAllReturningProject() {
-        return reviewSummaryRepo.findProjectContractBy();
+        return reviewSummaryRepo.findProjectIdBy();
     }
 
-    public void update(String projectContract, EvaluationSummary evaluationSummary, Long totalReviews, Float avg) {
-        Optional<ReviewSummary> existingSummary = reviewSummaryRepo.findByProjectContract(projectContract);
+    public void update(String projectId, EvaluationSummary evaluationSummary, Long totalReviews, Float avg) {
+        Optional<ReviewSummary> existingSummary = reviewSummaryRepo.findByProjectId(projectId);
 
         // Creates or updates
         ReviewSummary newSummary = existingSummary.orElseGet(ReviewSummary::new);
-        newSummary.setProjectContract(projectContract);
+        newSummary.setProjectId(UUID.fromString(projectId));
         newSummary.setEvaluationSummary(evaluationSummary);
         newSummary.setId(UUID.randomUUID());
         newSummary.setTotalReviews(totalReviews);

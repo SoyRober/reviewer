@@ -16,15 +16,7 @@ public class ReviewRequest {
     @NotBlank
     private String clientAddress;
 
-    @NotNull
-    @NotBlank
-    private String projectContract;
-
     private String comment;
-
-    private Instant createdAt;
-
-    private Instant updatedAt;
 
     @NotNull
     private EvaluationRequest evaluation;

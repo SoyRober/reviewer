@@ -19,14 +19,14 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request) throws IllegalAccessException {
-        return ResponseEntity.ok(reviewService.create(request));
+    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request, @RequestParam String projectId) throws IllegalAccessException {
+        return ResponseEntity.ok(reviewService.create(request, projectId));
     }
 
-    @GetMapping("/project/{project}")
-    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProject(@PathVariable String project,
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProject(@PathVariable String projectId,
                                                                                          @ModelAttribute @Valid PaginationRequest request) {
-        return ResponseEntity.ok(reviewService.getFromProject(project, request, true));
+        return ResponseEntity.ok(reviewService.getFromProject(projectId, request, true));
     }
 
     @GetMapping("/client/{client}")

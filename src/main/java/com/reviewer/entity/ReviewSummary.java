@@ -20,7 +20,7 @@ public class ReviewSummary {
     @Id
     private UUID id;
 
-    private String projectContract;
+    private UUID projectId;
 
     @LastModifiedDate
     private Instant updatedAt;

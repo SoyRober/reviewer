@@ -18,7 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @CompoundIndexes({
-        @CompoundIndex(name = "client_project_unique_idx", def = "{'clientAddress': 1, 'projectContract': 1}", unique = true)
+        @CompoundIndex(name = "client_project_unique_idx", def = "{'clientAddress': 1, 'projectId': 1}", unique = true)
 })
 public class Review {
     @Id
@@ -26,7 +26,7 @@ public class Review {
 
     private String clientAddress;
 
-    private String projectContract;
+    private UUID projectId;
 
     private String comment;
 

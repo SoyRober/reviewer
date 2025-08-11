@@ -38,25 +38,30 @@ public class ReviewService {
     private final MongoTemplate mongoTemplate;
     private final ReviewSummaryService reviewSummaryService;
 
-    public ReviewResponse create(ReviewRequest request) throws IllegalAccessException {
-        Review review = reviewRepo.findByClientAddressAndProjectContract(request.getClientAddress(), request.getProjectContract())
+    public ReviewResponse create(ReviewRequest request, String projectId) throws IllegalAccessException {
+        Review review = reviewRepo.findByClientAddressAndProjectId(request.getClientAddress(), projectId)
                 .orElse(new Review());
 
+        //TODO: make petition to the project service to check if the project exists
         if (review.getId() == null) {
             reviewMapper.updateReviewFromReviewRequest(request, review);
             review.setId(UUID.randomUUID());
+            review.setProjectId(UUID.fromString(projectId));
             review.setCreatedAt(Instant.now());
             review = reviewRepo.save(review);
-
-            EvaluationSummary evaluationSummary = EvaluationSummary.builder()
-                    .communitySummary(request.getEvaluation().getCommunity())
-                    .potentialSummary(request.getEvaluation().getPotential())
-                    .securitySummary(request.getEvaluation().getPotential())
-                    .tokenomicsSummary(request.getEvaluation().getTokenomics())
-                    .trustSummary(request.getEvaluation().getTrust())
-                    .build();
-            reviewSummaryService.update(request.getProjectContract(), evaluationSummary, countProjectReviews(request.getProjectContract()), 0f);
         }
+
+
+        EvaluationSummary evaluationSummary = EvaluationSummary.builder()
+                .communitySummary(request.getEvaluation().getCommunity())
+                .potentialSummary(request.getEvaluation().getPotential())
+                .securitySummary(request.getEvaluation().getPotential())
+                .tokenomicsSummary(request.getEvaluation().getTokenomics())
+                .trustSummary(request.getEvaluation().getTrust())
+                .build();
+        reviewSummaryService.update(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
+
+        reviewRepo.save(review);
 
         ReviewResponse response = reviewMapper.toReviewResponse(review);
         response.setAverage(calculateAvg(response.getEvaluation()));
@@ -92,13 +97,13 @@ public class ReviewService {
         return Math.round(avg * 100.0f) / 100.0f;
     }
 
-    public PaginationResponse<ReviewResponse> getFromProject(String project, @Valid PaginationRequest request, boolean isActive) {
+    public PaginationResponse<ReviewResponse> getFromProject(String projectId, @Valid PaginationRequest request, boolean isActive) {
         Sort sort = getDirectionAndField(request.isDirection(), request.getSortBy());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<Review> reviews = isActive ?
-                reviewRepo.findByProjectContract(project, pageable) :
-                reviewRepo.findByProjectContractAndIsActiveFalse(project, pageable);
+                reviewRepo.findByProjectId(projectId, pageable) :
+                reviewRepo.findByProjectIdAndIsActiveFalse(projectId, pageable);
 
         return PaginationResponse.<ReviewResponse>builder()
                 .content(reviewMapper.toReviewResponseList(reviews.getContent()))
@@ -106,13 +111,13 @@ public class ReviewService {
                 .build();
     }
 
-    public Review findRecent(String project) {
-        return reviewRepo.findFirstByProjectContractOrderByCreatedAtDesc(project);
+    public Review findRecent(String projectId) {
+        return reviewRepo.findFirstByProjectIdOrderByCreatedAtDesc(projectId);
     }
 
-    public Long sumAllColumnValueByProject(String column, String project) {
+    public Long sumAllColumnValueByProject(String column, String projectId) {
         Aggregation aggregation = newAggregation(
-                match(Criteria.where("projectContract").is(project)),
+                match(Criteria.where("projectId").is(projectId)),
                 group().sum("evaluation." + column).as("totalSum")
         );
 
@@ -127,8 +132,8 @@ public class ReviewService {
         return result != null ? result.getLong("totalSum") : 0L;
     }
 
-    public Long countProjectReviews(String projectContract) {
-        return reviewRepo.countByProjectContract(projectContract);
+    public Long countProjectReviews(String projectId) {
+        return reviewRepo.countByProjectId(projectId);
     }
 
     public PaginationResponse<ReviewResponse> getFromClient(String client, @Valid PaginationRequest request, boolean isActive) {
@@ -156,7 +161,7 @@ public class ReviewService {
             log.error("Invalid sort direction provided: {}. Defaulting to ASC.", direction);
         }
 
-        List<String> validSortByFields = List.of("clientAddress", "projectContract", "createdAt", "isActive");
+        List<String> validSortByFields = List.of("clientAddress", "projectId", "createdAt", "isActive");
         String actualSortByField = validSortByFields.contains(sortBy.trim()) ?
                 sortBy.trim() :
                 "createdAt";
