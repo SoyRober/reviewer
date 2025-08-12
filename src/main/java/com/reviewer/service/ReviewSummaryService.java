@@ -21,14 +21,17 @@ public class ReviewSummaryService {
         return reviewSummaryRepo.findProjectIdBy();
     }
 
-    public void update(UUID projectId, EvaluationSummary evaluationSummary, Long totalReviews, Float avg) {
+    public void create(UUID projectId, EvaluationSummary evaluationSummary, Long totalReviews, Float avg) {
         Optional<ReviewSummary> existingSummary = reviewSummaryRepo.findByProjectId(projectId);
 
         // Creates or updates
         ReviewSummary newSummary = existingSummary.orElseGet(ReviewSummary::new);
         newSummary.setProjectId(projectId);
         newSummary.setEvaluationSummary(evaluationSummary);
-        newSummary.setId(UUID.randomUUID());
+
+        UUID id = newSummary.getId() != null ? newSummary.getId() : UUID.randomUUID();
+        newSummary.setId(id);
+
         newSummary.setTotalReviews(totalReviews);
         newSummary.setAverage(avg);
 

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -18,8 +19,10 @@ import java.util.UUID;
 public class ReviewSummary {
 
     @Id
+    @Indexed(unique = true)
     private UUID id;
 
+    @Indexed(unique = true)
     private UUID projectId;
 
     @LastModifiedDate

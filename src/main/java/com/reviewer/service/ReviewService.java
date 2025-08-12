@@ -58,7 +58,7 @@ public class ReviewService {
                 .tokenomicsSummary(request.getEvaluation().getTokenomics())
                 .trustSummary(request.getEvaluation().getTrust())
                 .build();
-        reviewSummaryService.update(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
+        reviewSummaryService.create(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
 
         review = reviewRepo.save(review);
 
