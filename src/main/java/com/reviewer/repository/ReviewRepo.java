@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface ReviewRepo extends MongoRepository<Review, UUID> {
-    Optional<Review> findByClientAddressAndProjectId(String clientAddress, String projectId);
+    Optional<Review> findByClientAddressAndProjectId(String clientAddress, UUID projectId);
 
     Page<Review> findByProjectId(String projectId, Pageable pageable);
 
@@ -19,7 +19,7 @@ public interface ReviewRepo extends MongoRepository<Review, UUID> {
 
     Page<Review> findByProjectIdAndIsActiveFalse(String projectId, Pageable pageable);
 
-    Long countByProjectId(String projectId);
+    Long countByProjectId(UUID projectId);
 
     Page<Review> findByClientAddressAndIsActiveFalse(String client, Pageable pageable);
 

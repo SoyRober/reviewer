@@ -12,5 +12,5 @@ import java.util.UUID;
 public interface ReviewSummaryRepo extends MongoRepository<ReviewSummary, UUID> {
     List<String> findProjectIdBy();
 
-    Optional<ReviewSummary> findByProjectId(String projectId);
+    Optional<ReviewSummary> findByProjectId(UUID projectId);
 }

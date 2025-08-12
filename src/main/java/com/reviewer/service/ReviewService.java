@@ -38,19 +38,18 @@ public class ReviewService {
     private final MongoTemplate mongoTemplate;
     private final ReviewSummaryService reviewSummaryService;
 
-    public ReviewResponse create(ReviewRequest request, String projectId) throws IllegalAccessException {
+    public ReviewResponse create(ReviewRequest request, UUID projectId) throws IllegalAccessException {
         Review review = reviewRepo.findByClientAddressAndProjectId(request.getClientAddress(), projectId)
                 .orElse(new Review());
 
-        //TODO: make petition to the project service to check if the project exists
-        if (review.getId() == null) {
-            reviewMapper.updateReviewFromReviewRequest(request, review);
-            review.setId(UUID.randomUUID());
-            review.setProjectId(UUID.fromString(projectId));
-            review.setCreatedAt(Instant.now());
-            review = reviewRepo.save(review);
-        }
+        reviewMapper.updateReviewFromReviewRequest(request, review);
 
+        if (review.getId() == null) {
+            review.setId(UUID.randomUUID());
+            review.setProjectId(projectId);
+            review.setCreatedAt(Instant.now());
+            review.setIsActive(true);
+        }
 
         EvaluationSummary evaluationSummary = EvaluationSummary.builder()
                 .communitySummary(request.getEvaluation().getCommunity())
@@ -61,7 +60,7 @@ public class ReviewService {
                 .build();
         reviewSummaryService.update(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
 
-        reviewRepo.save(review);
+        review = reviewRepo.save(review);
 
         ReviewResponse response = reviewMapper.toReviewResponse(review);
         response.setAverage(calculateAvg(response.getEvaluation()));
@@ -72,24 +71,18 @@ public class ReviewService {
         long totalSum = 0L;
         int numberOfFields = 0;
 
-        // Obtener todos los campos de la clase EvaluationResponse
         Field[] fields = EvaluationResponse.class.getDeclaredFields();
 
         for (Field field : fields) {
-            // Asegurarse de que el campo sea accesible (en caso de que sea privado)
             field.setAccessible(true);
-            // Obtener el valor del campo del objeto 'evaluation'
-            // El valor se leerá como un Long, según la definición de la clase
             Long value = (Long) field.get(evaluation);
 
-            // Si el valor no es nulo, sumarlo al total
             if (value != null) {
                 totalSum += value;
                 numberOfFields++;
             }
         }
 
-        // Evitar una división por cero
         if (numberOfFields == 0) return 0f;
 
         float avg = ((float) totalSum / numberOfFields) / 20F;
@@ -132,7 +125,7 @@ public class ReviewService {
         return result != null ? result.getLong("totalSum") : 0L;
     }
 
-    public Long countProjectReviews(String projectId) {
+    public Long countProjectReviews(UUID projectId) {
         return reviewRepo.countByProjectId(projectId);
     }
 

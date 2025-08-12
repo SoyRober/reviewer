@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -22,6 +23,7 @@ import java.util.UUID;
 })
 public class Review {
     @Id
+    @Indexed(unique = true)
     private UUID id;
 
     private String clientAddress;

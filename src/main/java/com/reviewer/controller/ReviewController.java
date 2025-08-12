@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping("/{projectId}")
-    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request, @PathVariable String projectId) throws IllegalAccessException {
+    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request, @PathVariable UUID projectId) throws IllegalAccessException {
         return ResponseEntity.ok(reviewService.create(request, projectId));
     }
 
