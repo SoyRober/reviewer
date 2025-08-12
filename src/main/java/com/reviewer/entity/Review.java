@@ -40,4 +40,6 @@ public class Review {
     private Evaluation evaluation;
 
     private Boolean isActive = false;
+
+    private Integer reportCount = 0;
 }
