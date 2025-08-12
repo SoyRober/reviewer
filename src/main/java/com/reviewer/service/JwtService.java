@@ -7,7 +7,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -22,11 +21,11 @@ public class JwtService {
         return decodedJWT.getSubject();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token) {
         try {
-            String username = extractUsername(token);
-            log.info(token);
-            return username.equals(userDetails.getUsername());
+            decodeToken(token);
+            log.info("JWT token is valid.");
+            return true;
         } catch (JWTVerificationException exception) {
             log.error("JWT Validation Error: {}", exception.getMessage());
             return false;

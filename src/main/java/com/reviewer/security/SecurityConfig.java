@@ -2,6 +2,7 @@ package com.reviewer.security;
 
 import com.reviewer.configuration.JwtAuthenticationFilter;
 import com.reviewer.service.JwtService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
-        return new JwtAuthenticationFilter(jwtService, userDetailsService);
+        return new JwtAuthenticationFilter(jwtService);
     }
 
     @Bean
@@ -46,11 +47,15 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/reviews/admin/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/admin").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reviews/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex.accessDeniedHandler((request, response, accessDeniedException) -> {
+                    throw accessDeniedException;
+                }))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -95,15 +100,10 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> {
-            if (username == null || username.trim().isEmpty()) {
-                throw new UsernameNotFoundException("Username cannot be null or empty.");
-            }
-            return new User(
-                    username,
-                    "",
-                    Collections.emptyList()
-            );
-        };
+        return username -> new User(
+                username,
+                "",
+                Collections.emptyList() // ¡Aquí está el problema!
+        );
     }
 }
