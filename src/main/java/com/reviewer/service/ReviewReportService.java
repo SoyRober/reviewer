@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public class ReviewReportService {
     private final ReviewReportMapper reviewReportMapper;
 
     public ReviewReportResponse create(ReviewReportRequest request) {
-        ReviewReport report = reviewReportRepo.findByClientIdAndReviewId(request, request.getReviewId())
+        ReviewReport report = reviewReportRepo.findByClientIdAndReviewId(request.getClientId(), request.getReviewId())
                 .orElseGet(ReviewReport::new);
 
         if (report.getId() == null) {
@@ -36,22 +37,20 @@ public class ReviewReportService {
     }
 
     public List<ReviewReportResponse> getAllFiltered(ReviewReportRequest request) {
-        List<ReviewReport> list;
-        if(request.getReviewId() != null && request.getClientId() != null) {
-            return reviewReportRepo.findByClientIdAndReviewId(request, request.getReviewId())
-                    .stream()
-                    .map(reviewReportMapper::toReviewReportResponseList)
-                    .toList();
+        List<ReviewReport> list = List.of();
+
+        if (request.getReviewId() != null && request.getClientId() != null) {
+            list = reviewReportRepo.findByClientIdAndReviewId(request.getClientId(), request.getReviewId())
+                    .map(List::of)
+                    .orElse(List.of());
         } else if (request.getReviewId() != null) {
-            return reviewReportRepo.findAllByReviewId(request.getReviewId())
-                    .stream()
-                    .map(reviewReportMapper::toReviewReportResponseList)
-                    .toList();
+            list = reviewReportRepo.findAllByReviewId(request.getReviewId());
         } else if (request.getClientId() != null) {
             list = reviewReportRepo.findAllByClientId(request.getClientId());
-            return reviewReportMapper.toReviewReportResponseList(list);
         }
 
-        return List.of(new ReviewReportResponse());
+        return list.stream()
+                .map(reviewReportMapper::toReviewReportResponse)
+                .toList();
     }
 }
