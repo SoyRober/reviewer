@@ -10,6 +10,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -25,21 +27,14 @@ import java.util.UUID;
 public class Review {
     @Id
     private UUID id;
-
     private String clientAddress;
-
     private UUID projectId;
-
     private String comment;
-
     private Instant createdAt;
-
     @LastModifiedDate
     private Instant updatedAt;
-
     private Evaluation evaluation;
-
     private Boolean isActive = false;
-
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal average;
 }

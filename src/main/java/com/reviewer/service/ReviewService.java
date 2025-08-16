@@ -78,11 +78,10 @@ public class ReviewService {
             }
         }
 
-        if (numberOfFields == 0) return BigDecimal.ZERO;
+        if (numberOfFields == 0) return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal avg = new BigDecimal(totalSum / numberOfFields / 20);
-
-        return avg.setScale(2, RoundingMode.HALF_UP);
+        return new BigDecimal((double) totalSum / numberOfFields / 20.0)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
