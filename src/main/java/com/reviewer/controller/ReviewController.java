@@ -35,7 +35,13 @@ public class ReviewController {
 
     @GetMapping("/client/{client}")
     public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromClient(@PathVariable String client,
-                                                                                         @ModelAttribute @Valid PaginationRequest request) {
+                                                                                        @ModelAttribute @Valid PaginationRequest request) {
         return ResponseEntity.ok(reviewService.getFromClient(client, request, true));
     }
+
+    // TODO: hacer endpoint
+//    @GetMapping("/project/{projectId}/client/{clientId}")
+
+    // TODO: hacer endpoint
+//    @DeleteMapping("/project/{projectId}/client/{clientId}")
 }

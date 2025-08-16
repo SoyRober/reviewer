@@ -2,15 +2,13 @@ package com.reviewer.service;
 
 import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewRequest;
-import com.reviewer.dto.response.EvaluationResponse;
 import com.reviewer.dto.response.PaginationResponse;
 import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.entity.Review;
 import com.reviewer.mapper.ReviewMapper;
-import com.reviewer.model.EvaluationSummary;
+import com.reviewer.model.Evaluation;
 import com.reviewer.repository.ReviewRepo;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -50,29 +48,23 @@ public class ReviewService {
             review.setProjectId(projectId);
             review.setCreatedAt(Instant.now());
             review.setIsActive(true);
-
-            EvaluationSummary evaluationSummary = EvaluationSummary.builder()
-                    .communitySummary(request.getEvaluation().getCommunity())
-                    .potentialSummary(request.getEvaluation().getPotential())
-                    .securitySummary(request.getEvaluation().getPotential())
-                    .tokenomicsSummary(request.getEvaluation().getTokenomics())
-                    .trustSummary(request.getEvaluation().getTrust())
-                    .build();
-            reviewSummaryService.create(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
         }
 
+        review.setAverage(calculateAvg(review.getEvaluation()));
         review = reviewRepo.save(review);
 
-        ReviewResponse response = reviewMapper.toReviewResponse(review);
-        response.setAverage(calculateAvg(response.getEvaluation()));
-        return response;
+        if (!reviewSummaryService.existsByProjectId(projectId)) {
+            reviewSummaryService.create(projectId, review, countProjectReviews(projectId));
+        }
+
+        return reviewMapper.toReviewResponse(review);
     }
 
-    private Float calculateAvg(EvaluationResponse evaluation) throws IllegalAccessException {
+    private Float calculateAvg(Evaluation evaluation) throws IllegalAccessException {
         long totalSum = 0L;
         int numberOfFields = 0;
 
-        Field[] fields = EvaluationResponse.class.getDeclaredFields();
+        Field[] fields = Evaluation.class.getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);

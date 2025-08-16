@@ -6,12 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewResponse {
+    private UUID id;
+
     private String clientAddress;
 
     private String projectId;

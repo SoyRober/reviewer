@@ -39,4 +39,6 @@ public class Review {
     private Evaluation evaluation;
 
     private Boolean isActive = false;
+
+    private Float average;
 }

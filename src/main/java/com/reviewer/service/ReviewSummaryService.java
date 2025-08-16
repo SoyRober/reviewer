@@ -1,11 +1,9 @@
 package com.reviewer.service;
 
-import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.dto.response.ReviewSummaryResponse;
 import com.reviewer.entity.Review;
 import com.reviewer.entity.ReviewSummary;
 import com.reviewer.exception.NotFoundException;
-import com.reviewer.mapper.ReviewMapper;
 import com.reviewer.mapper.ReviewSummaryMapper;
 import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewSummaryRepo;
@@ -28,10 +26,17 @@ public class ReviewSummaryService {
         return reviewSummaryRepo.findProjectIdBy();
     }
 
-    public void create(UUID projectId, EvaluationSummary evaluationSummary, Long totalReviews, Float avg) {
+    public void create(UUID projectId, Review review, Long totalReviews) {
         Optional<ReviewSummary> existingSummary = reviewSummaryRepo.findByProjectId(projectId);
 
-        // Creates or updates
+        EvaluationSummary evaluationSummary = EvaluationSummary.builder()
+                .communitySummary(review.getEvaluation().getCommunity())
+                .potentialSummary(review.getEvaluation().getPotential())
+                .securitySummary(review.getEvaluation().getPotential())
+                .tokenomicsSummary(review.getEvaluation().getTokenomics())
+                .trustSummary(review.getEvaluation().getTrust())
+                .build();
+
         ReviewSummary newSummary = existingSummary.orElseGet(ReviewSummary::new);
         newSummary.setProjectId(projectId);
         newSummary.setEvaluationSummary(evaluationSummary);
@@ -40,7 +45,7 @@ public class ReviewSummaryService {
         newSummary.setId(id);
 
         newSummary.setTotalReviews(totalReviews);
-        newSummary.setAverage(avg);
+        newSummary.setAverage(review.getAverage());
 
         reviewSummaryRepo.save(newSummary);
     }
@@ -49,5 +54,9 @@ public class ReviewSummaryService {
         ReviewSummary summary = reviewSummaryRepo.findByProjectId(projectId)
                 .orElseThrow(() -> new NotFoundException("Project not found"));
         return reviewSummaryMapper.toReviewSummaryResponse(summary);
+    }
+
+    public boolean existsByProjectId(UUID projectId) {
+        return reviewSummaryRepo.findByProjectId(projectId).isPresent();
     }
 }
