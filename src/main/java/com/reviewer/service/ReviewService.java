@@ -22,6 +22,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -80,7 +82,7 @@ public class ReviewService {
 
         float avg = ((float) totalSum / numberOfFields) / 20F;
 
-        return Math.round(avg * 100.0f) / 100.0f;
+        return new BigDecimal(avg).setScale(2, RoundingMode.HALF_UP).floatValue();
     }
 
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
