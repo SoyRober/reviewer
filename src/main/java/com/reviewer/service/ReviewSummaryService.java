@@ -23,8 +23,6 @@ import java.util.UUID;
 public class ReviewSummaryService {
     private final ReviewSummaryRepo reviewSummaryRepo;
     private final ReviewSummaryMapper reviewSummaryMapper;
-    private final ReviewService reviewService;
-    private final ReviewMapper reviewMapper;
 
     public List<String> findAllReturningProject() {
         return reviewSummaryRepo.findProjectIdBy();
