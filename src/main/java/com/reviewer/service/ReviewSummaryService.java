@@ -50,10 +50,6 @@ public class ReviewSummaryService {
     public ReviewSummaryResponse getEvaluation(UUID projectId) {
         ReviewSummary summary = reviewSummaryRepo.findByProjectId(projectId)
                 .orElseThrow(() -> new NotFoundException("Project not found"));
-        ReviewSummaryResponse response = reviewSummaryMapper.toReviewSummaryResponse(summary);
-
-        List<Review> reviews = reviewService.findLastThreeFromProject(projectId);
-        response.setLastReviews(reviews.stream().map(reviewMapper::toReviewResponse).toList());
-        return response;
+        return reviewSummaryMapper.toReviewSummaryResponse(summary);
     }
 }

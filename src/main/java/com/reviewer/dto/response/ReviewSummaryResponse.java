@@ -19,6 +19,4 @@ public class ReviewSummaryResponse {
     private Float average;
 
     private Long totalReviews;
-
-    private List<ReviewResponse> lastReviews;
 }

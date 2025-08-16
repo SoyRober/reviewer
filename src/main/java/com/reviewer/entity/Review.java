@@ -23,7 +23,6 @@ import java.util.UUID;
 })
 public class Review {
     @Id
-    @Indexed(unique = true)
     private UUID id;
 
     private String clientAddress;

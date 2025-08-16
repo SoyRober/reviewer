@@ -19,7 +19,6 @@ import java.util.UUID;
 public class ReviewSummary {
 
     @Id
-    @Indexed(unique = true)
     private UUID id;
 
     @Indexed(unique = true)

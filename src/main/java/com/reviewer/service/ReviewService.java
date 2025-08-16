@@ -50,16 +50,16 @@ public class ReviewService {
             review.setProjectId(projectId);
             review.setCreatedAt(Instant.now());
             review.setIsActive(true);
-        }
 
-        EvaluationSummary evaluationSummary = EvaluationSummary.builder()
-                .communitySummary(request.getEvaluation().getCommunity())
-                .potentialSummary(request.getEvaluation().getPotential())
-                .securitySummary(request.getEvaluation().getPotential())
-                .tokenomicsSummary(request.getEvaluation().getTokenomics())
-                .trustSummary(request.getEvaluation().getTrust())
-                .build();
-        reviewSummaryService.create(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
+            EvaluationSummary evaluationSummary = EvaluationSummary.builder()
+                    .communitySummary(request.getEvaluation().getCommunity())
+                    .potentialSummary(request.getEvaluation().getPotential())
+                    .securitySummary(request.getEvaluation().getPotential())
+                    .tokenomicsSummary(request.getEvaluation().getTokenomics())
+                    .trustSummary(request.getEvaluation().getTrust())
+                    .build();
+            reviewSummaryService.create(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
+        }
 
         review = reviewRepo.save(review);
 
