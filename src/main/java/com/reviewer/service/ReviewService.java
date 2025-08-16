@@ -11,6 +11,7 @@ import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewRepo;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +32,7 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepo reviewRepo;
     private final ReviewMapper reviewMapper;
@@ -90,7 +91,7 @@ public class ReviewService {
         return Math.round(avg * 100.0f) / 100.0f;
     }
 
-    public PaginationResponse<ReviewResponse> getFromProject(String projectId, @Valid PaginationRequest request, boolean isActive) {
+    public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
         Sort sort = getDirectionAndField(request.isDirection(), request.getSortBy());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
@@ -160,5 +161,9 @@ public class ReviewService {
                 "createdAt";
 
         return Sort.by(sortDirection, actualSortByField);
+    }
+
+    public List<Review> findLastThreeFromProject(UUID projectId) {
+        return reviewRepo.findTop3ByProjectIdOrderByCreatedAtDesc(projectId);
     }
 }

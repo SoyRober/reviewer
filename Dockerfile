@@ -1,5 +1,11 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jdk
+
 WORKDIR /app
-COPY target/reviewer-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8003
-CMD ["java", "-jar", "app.jar"]
+
+COPY pom.xml mvnw ./
+COPY .mvn .mvn
+RUN ./mvnw dependency:go-offline
+
+COPY src ./src
+
+CMD ["./mvnw", "spring-boot:run"]

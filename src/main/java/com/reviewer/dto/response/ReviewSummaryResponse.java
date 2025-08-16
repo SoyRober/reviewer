@@ -14,9 +14,11 @@ import java.util.List;
 public class ReviewSummaryResponse {
     private String projectId;
 
-    private EvaluationSummaryResponse evaluationSummaryResponse;
+    private EvaluationSummaryResponse evaluationSummary;
 
     private Float average;
+
+    private Long totalReviews;
 
     private List<ReviewResponse> lastReviews;
 }

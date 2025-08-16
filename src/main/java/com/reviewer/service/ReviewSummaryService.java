@@ -1,6 +1,12 @@
 package com.reviewer.service;
 
+import com.reviewer.dto.response.ReviewResponse;
+import com.reviewer.dto.response.ReviewSummaryResponse;
+import com.reviewer.entity.Review;
 import com.reviewer.entity.ReviewSummary;
+import com.reviewer.exception.NotFoundException;
+import com.reviewer.mapper.ReviewMapper;
+import com.reviewer.mapper.ReviewSummaryMapper;
 import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewSummaryRepo;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +22,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewSummaryService {
     private final ReviewSummaryRepo reviewSummaryRepo;
+    private final ReviewSummaryMapper reviewSummaryMapper;
+    private final ReviewService reviewService;
+    private final ReviewMapper reviewMapper;
 
     public List<String> findAllReturningProject() {
         return reviewSummaryRepo.findProjectIdBy();
@@ -36,5 +45,15 @@ public class ReviewSummaryService {
         newSummary.setAverage(avg);
 
         reviewSummaryRepo.save(newSummary);
+    }
+
+    public ReviewSummaryResponse getEvaluation(UUID projectId) {
+        ReviewSummary summary = reviewSummaryRepo.findByProjectId(projectId)
+                .orElseThrow(() -> new NotFoundException("Project not found"));
+        ReviewSummaryResponse response = reviewSummaryMapper.toReviewSummaryResponse(summary);
+
+        List<Review> reviews = reviewService.findLastThreeFromProject(projectId);
+        response.setLastReviews(reviews.stream().map(reviewMapper::toReviewResponse).toList());
+        return response;
     }
 }
