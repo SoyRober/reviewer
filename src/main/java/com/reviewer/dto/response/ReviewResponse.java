@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,5 +28,5 @@ public class ReviewResponse {
 
     private EvaluationResponse evaluation;
 
-    private Float average;
+    private BigDecimal average;
 }

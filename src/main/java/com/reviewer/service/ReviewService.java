@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -63,7 +62,7 @@ public class ReviewService {
         return reviewMapper.toReviewResponse(review);
     }
 
-    private Float calculateAvg(Evaluation evaluation) throws IllegalAccessException {
+    private BigDecimal calculateAvg(Evaluation evaluation) throws IllegalAccessException {
         long totalSum = 0L;
         int numberOfFields = 0;
 
@@ -79,12 +78,11 @@ public class ReviewService {
             }
         }
 
-        if (numberOfFields == 0) return 0f;
+        if (numberOfFields == 0) return BigDecimal.ZERO;
 
-        float avg = ((float) totalSum / numberOfFields) / 20F;
-        DecimalFormat df = new DecimalFormat("#.00");
+        BigDecimal avg = new BigDecimal(totalSum / numberOfFields / 20);
 
-        return Float.parseFloat(df.format(avg));
+        return avg.setScale(2, RoundingMode.HALF_UP);
     }
 
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {

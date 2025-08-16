@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -16,7 +17,7 @@ public class ReviewSummaryResponse {
 
     private EvaluationSummaryResponse evaluationSummary;
 
-    private Float average;
+    private BigDecimal average;
 
     private Long totalReviews;
 }
