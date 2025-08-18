@@ -9,12 +9,20 @@ import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewSummaryRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Slf4j
 @Service
@@ -22,9 +30,10 @@ import java.util.UUID;
 public class ReviewSummaryService {
     private final ReviewSummaryRepo reviewSummaryRepo;
     private final ReviewSummaryMapper reviewSummaryMapper;
+    private final MongoTemplate mongoTemplate;
 
     public List<UUID> findAllReturningProject() {
-        return reviewSummaryRepo.findProjectIdBy();
+        return reviewSummaryRepo.findProjectIdBy().stream().map(ReviewSummary::getProjectId).toList();
     }
 
     public void create(UUID projectId, Review review, Long totalReviews) {
@@ -61,47 +70,70 @@ public class ReviewSummaryService {
         return reviewSummaryRepo.findByProjectId(projectId).isPresent();
     }
 
-    public void update(UUID projectContract) {
-        // Paso 1: Obtener el documento ReviewSummary existente
+    public void update(UUID projectContract, Long totalReviews) {
         ReviewSummary reviewSummary = reviewSummaryRepo.findByProjectId(projectContract)
                 .orElseThrow(() -> {
                     log.info("This summary should exist, but it does not. Project ID: {}", projectContract);
                     return new NotFoundException("ReviewSummary not found");
                 });
 
-        // Paso 2: Usar el servicio de agregación para obtener las medias actualizadas
         Optional<EvaluationSummary> optionalSummary = getProjectEvaluationSummary(projectContract);
 
-        // Paso 3: Si el resultado de la agregación existe, actualiza el documento y guárdalo
         if (optionalSummary.isPresent()) {
             EvaluationSummary newAverages = optionalSummary.get();
 
-            reviewSummary.getEvaluationSummary().setTrustSummary(newAverages.getTrustSummary());
-            reviewSummary.getEvaluationSummary().setSecuritySummary(newAverages.getSecuritySummary());
-            reviewSummary.getEvaluationSummary().setTokenomicsSummary(newAverages.getTokenomicsSummary());
-            reviewSummary.getEvaluationSummary().setCommunitySummary(newAverages.getCommunitySummary());
-            reviewSummary.getEvaluationSummary().setPotentialSummary(newAverages.getPotentialSummary());
+            BeanUtils.copyProperties(newAverages, reviewSummary.getEvaluationSummary());
 
-            // Aquí podrías actualizar otros campos si lo necesitas, como el número de reviews.
-            // reviewSummary.setTotalReviews(totalReviews);
+            BigDecimal finalAverage = calculateTotalAverage(newAverages);
+            reviewSummary.setAverage(finalAverage);
+            reviewSummary.setTotalReviews(totalReviews);
 
-            // Paso 4: Guarda el documento actualizado en la base de datos
             reviewSummaryRepo.save(reviewSummary);
         } else {
-            // Manejar el caso en el que no se encontraron reviews para el proyecto
-            // Podrías lanzar una excepción, registrar un error o simplemente no hacer nada.
-            log.warn("No reviews found for project ID: {}. Evaluation summary was not updated.", projectContract);
+            resetReviewSummary(projectContract, reviewSummary);
         }
     }
 
-    private Optional<EvaluationSummary> getProjectEvaluationSummary(UUID projectContract) {
-        return reviewSummaryRepo.findByProjectId(projectContract)
-                .map(reviewSummary -> EvaluationSummary.builder()
-                        .trustSummary(reviewSummary.getEvaluationSummary().getTrustSummary())
-                        .securitySummary(reviewSummary.getEvaluationSummary().getSecuritySummary())
-                        .tokenomicsSummary(reviewSummary.getEvaluationSummary().getTokenomicsSummary())
-                        .communitySummary(reviewSummary.getEvaluationSummary().getCommunitySummary())
-                        .potentialSummary(reviewSummary.getEvaluationSummary().getPotentialSummary())
-                        .build());
+    private BigDecimal calculateTotalAverage(EvaluationSummary newAverages) {
+        long sumOfAllAverages = newAverages.getTrustSummary()
+                + newAverages.getSecuritySummary()
+                + newAverages.getTokenomicsSummary()
+                + newAverages.getCommunitySummary()
+                + newAverages.getPotentialSummary();
+
+        BigDecimal averageOn100Scale = new BigDecimal(sumOfAllAverages)
+                .divide(new BigDecimal(5), 2, RoundingMode.HALF_UP);
+
+        return averageOn100Scale.divide(new BigDecimal(20), 2, RoundingMode.HALF_UP);
+    }
+
+    private void resetReviewSummary(UUID projectContract, ReviewSummary reviewSummary) {
+        log.warn("No reviews found for project ID: {}. Evaluation summary was not updated.", projectContract);
+        reviewSummary.getEvaluationSummary().setTrustSummary(0L);
+        reviewSummary.getEvaluationSummary().setSecuritySummary(0L);
+        reviewSummary.getEvaluationSummary().setTokenomicsSummary(0L);
+        reviewSummary.getEvaluationSummary().setCommunitySummary(0L);
+        reviewSummary.getEvaluationSummary().setPotentialSummary(0L);
+        reviewSummary.setAverage(BigDecimal.ZERO);
+        reviewSummary.setTotalReviews(0L);
+        reviewSummaryRepo.save(reviewSummary);
+    }
+
+    public Optional<EvaluationSummary> getProjectEvaluationSummary(UUID projectContract) {
+        Aggregation aggregation = newAggregation(
+                match(Criteria.where("projectId").is(projectContract)),
+                group()
+                        .avg("evaluation.trust").as("trustSummary")
+                        .avg("evaluation.security").as("securitySummary")
+                        .avg("evaluation.tokenomics").as("tokenomicsSummary")
+                        .avg("evaluation.community").as("communitySummary")
+                        .avg("evaluation.potential").as("potentialSummary")
+        );
+
+        AggregationResults<EvaluationSummary> results = mongoTemplate.aggregate(
+                aggregation, "review", EvaluationSummary.class
+        );
+
+        return Optional.ofNullable(results.getUniqueMappedResult());
     }
 }

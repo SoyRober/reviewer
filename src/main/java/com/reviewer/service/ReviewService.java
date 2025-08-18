@@ -7,6 +7,7 @@ import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.entity.Review;
 import com.reviewer.mapper.ReviewMapper;
 import com.reviewer.model.Evaluation;
+import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewRepo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
@@ -156,7 +158,7 @@ public class ReviewService {
         return Sort.by(sortDirection, actualSortByField);
     }
 
-    public List<Review> findLastThreeFromProject(UUID projectId) {
-        return reviewRepo.findTop3ByProjectIdOrderByCreatedAtDesc(projectId);
+    public Long countByProjectId(UUID projectContract) {
+        return reviewRepo.countByProjectId(projectContract);
     }
 }
