@@ -27,5 +27,5 @@ public interface ReviewRepo extends MongoRepository<Review, UUID> {
 
     Page<Review> findByClientAddress(String client, Pageable pageable);
 
-    List<Review> findTop3ByProjectIdOrderByCreatedAtDesc(UUID projectId);
+    void deleteByProjectIdAndClientAddress(UUID projectId, String clientAddress);
 }

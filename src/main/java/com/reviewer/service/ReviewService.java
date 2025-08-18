@@ -5,6 +5,7 @@ import com.reviewer.dto.request.ReviewRequest;
 import com.reviewer.dto.response.PaginationResponse;
 import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.entity.Review;
+import com.reviewer.exception.NotFoundException;
 import com.reviewer.mapper.ReviewMapper;
 import com.reviewer.model.Evaluation;
 import com.reviewer.model.EvaluationSummary;
@@ -160,5 +161,15 @@ public class ReviewService {
 
     public Long countByProjectId(UUID projectContract) {
         return reviewRepo.countByProjectId(projectContract);
+    }
+
+    public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
+        Review review = reviewRepo.findByClientAddressAndProjectId(clientAddress, projectId)
+                .orElseThrow(() -> new NotFoundException("Review not found for project and client"));
+        return reviewMapper.toReviewResponse(review);
+    }
+
+    public void deleteFromProjectAndClient(UUID projectId, String clientAddress) {
+        reviewRepo.deleteByProjectIdAndClientAddress(projectId, clientAddress);
     }
 }

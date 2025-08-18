@@ -33,15 +33,22 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getFromProject(projectId, request, true));
     }
 
-    @GetMapping("/client/{client}")
-    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromClient(@PathVariable String client,
+    @GetMapping("/client/{clientAddress}")
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromClient(@PathVariable String clientAddress,
                                                                                         @ModelAttribute @Valid PaginationRequest request) {
-        return ResponseEntity.ok(reviewService.getFromClient(client, request, true));
+        return ResponseEntity.ok(reviewService.getFromClient(clientAddress, request, true));
     }
 
-    // TODO: hacer endpoint
-//    @GetMapping("/project/{projectId}/client/{clientId}")
+    @GetMapping("/project/{projectId}/client/{clientAddress}")
+    public ResponseEntity<ReviewResponse> getReviewFromProjectAndClient(@PathVariable UUID projectId,
+                                                                           @PathVariable String clientAddress) {
+        return ResponseEntity.ok(reviewService.getFromProjectAndClient(projectId, clientAddress));
+    }
 
-    // TODO: hacer endpoint
-//    @DeleteMapping("/project/{projectId}/client/{clientId}")
+    @DeleteMapping("/project/{projectId}/client/{clientAddress}")
+    public ResponseEntity<Void> deleteReviewFromProjectAndClient(@PathVariable UUID projectId,
+                                                                  @PathVariable String clientAddress) {
+        reviewService.deleteFromProjectAndClient(projectId, clientAddress);
+        return ResponseEntity.noContent().build();
+    }
 }
