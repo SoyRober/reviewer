@@ -98,11 +98,11 @@ public class ReviewService {
                 .build();
     }
 
-    public Review findRecent(String projectId) {
+    public Review findRecent(UUID projectId) {
         return reviewRepo.findFirstByProjectIdOrderByCreatedAtDesc(projectId);
     }
 
-    public Long sumAllColumnValueByProject(String column, String projectId) {
+    public Long sumAllColumnValueByProject(String column, UUID projectId) {
         Aggregation aggregation = newAggregation(
                 match(Criteria.where("projectId").is(projectId)),
                 group().sum("evaluation." + column).as("totalSum")

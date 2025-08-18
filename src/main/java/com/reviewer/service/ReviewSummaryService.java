@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,7 +23,7 @@ public class ReviewSummaryService {
     private final ReviewSummaryRepo reviewSummaryRepo;
     private final ReviewSummaryMapper reviewSummaryMapper;
 
-    public List<String> findAllReturningProject() {
+    public List<UUID> findAllReturningProject() {
         return reviewSummaryRepo.findProjectIdBy();
     }
 
@@ -58,5 +59,49 @@ public class ReviewSummaryService {
 
     public boolean existsByProjectId(UUID projectId) {
         return reviewSummaryRepo.findByProjectId(projectId).isPresent();
+    }
+
+    public void update(UUID projectContract) {
+        // Paso 1: Obtener el documento ReviewSummary existente
+        ReviewSummary reviewSummary = reviewSummaryRepo.findByProjectId(projectContract)
+                .orElseThrow(() -> {
+                    log.info("This summary should exist, but it does not. Project ID: {}", projectContract);
+                    return new NotFoundException("ReviewSummary not found");
+                });
+
+        // Paso 2: Usar el servicio de agregación para obtener las medias actualizadas
+        Optional<EvaluationSummary> optionalSummary = getProjectEvaluationSummary(projectContract);
+
+        // Paso 3: Si el resultado de la agregación existe, actualiza el documento y guárdalo
+        if (optionalSummary.isPresent()) {
+            EvaluationSummary newAverages = optionalSummary.get();
+
+            reviewSummary.getEvaluationSummary().setTrustSummary(newAverages.getTrustSummary());
+            reviewSummary.getEvaluationSummary().setSecuritySummary(newAverages.getSecuritySummary());
+            reviewSummary.getEvaluationSummary().setTokenomicsSummary(newAverages.getTokenomicsSummary());
+            reviewSummary.getEvaluationSummary().setCommunitySummary(newAverages.getCommunitySummary());
+            reviewSummary.getEvaluationSummary().setPotentialSummary(newAverages.getPotentialSummary());
+
+            // Aquí podrías actualizar otros campos si lo necesitas, como el número de reviews.
+            // reviewSummary.setTotalReviews(totalReviews);
+
+            // Paso 4: Guarda el documento actualizado en la base de datos
+            reviewSummaryRepo.save(reviewSummary);
+        } else {
+            // Manejar el caso en el que no se encontraron reviews para el proyecto
+            // Podrías lanzar una excepción, registrar un error o simplemente no hacer nada.
+            log.warn("No reviews found for project ID: {}. Evaluation summary was not updated.", projectContract);
+        }
+    }
+
+    private Optional<EvaluationSummary> getProjectEvaluationSummary(UUID projectContract) {
+        return reviewSummaryRepo.findByProjectId(projectContract)
+                .map(reviewSummary -> EvaluationSummary.builder()
+                        .trustSummary(reviewSummary.getEvaluationSummary().getTrustSummary())
+                        .securitySummary(reviewSummary.getEvaluationSummary().getSecuritySummary())
+                        .tokenomicsSummary(reviewSummary.getEvaluationSummary().getTokenomicsSummary())
+                        .communitySummary(reviewSummary.getEvaluationSummary().getCommunitySummary())
+                        .potentialSummary(reviewSummary.getEvaluationSummary().getPotentialSummary())
+                        .build());
     }
 }

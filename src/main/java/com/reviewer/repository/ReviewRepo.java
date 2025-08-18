@@ -17,7 +17,7 @@ public interface ReviewRepo extends MongoRepository<Review, UUID> {
 
     Page<Review> findByProjectId(UUID projectId, Pageable pageable);
 
-    Review findFirstByProjectIdOrderByCreatedAtDesc(String projectId);
+    Review findFirstByProjectIdOrderByCreatedAtDesc(UUID projectId);
 
     Page<Review> findByProjectIdAndIsActiveFalse(UUID projectId, Pageable pageable);
 
