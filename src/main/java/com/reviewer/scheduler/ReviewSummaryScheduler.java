@@ -21,8 +21,9 @@ public class ReviewSummaryScheduler {
     private final ReviewService reviewService;
     private final ReviewSummaryService reviewSummaryService;
 
-    //    @Scheduled(cron = "0 0 * * * *")
-    @Scheduled(cron = "*/5 * * * * *")
+//    Only for testing purposes
+//    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void summarizeReviewsHourly() {
         List<UUID> notUpdatedProjects = reviewSummaryService.findAllReturningProject();
         log.info("Found {} projects to update", notUpdatedProjects.size());
