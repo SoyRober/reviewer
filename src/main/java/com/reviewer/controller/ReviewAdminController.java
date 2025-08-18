@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ public class ReviewAdminController {
     private final ReviewService reviewService;
 
     @GetMapping("/project/{project}")
-    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProjectAdmin(@PathVariable String project,
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProjectAdmin(@PathVariable UUID project,
                                                                                               @ModelAttribute @Valid PaginationRequest request,
                                                                                               @RequestParam(defaultValue = "true") Boolean isActive) {
         return ResponseEntity.ok(reviewService.getFromProject(project, request, isActive));

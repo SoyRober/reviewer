@@ -2,15 +2,16 @@ package com.reviewer.service;
 
 import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewRequest;
-import com.reviewer.dto.response.EvaluationResponse;
 import com.reviewer.dto.response.PaginationResponse;
 import com.reviewer.dto.response.ReviewResponse;
 import com.reviewer.entity.Review;
+import com.reviewer.exception.NotFoundException;
 import com.reviewer.mapper.ReviewMapper;
+import com.reviewer.model.Evaluation;
 import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewRepo;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,15 +24,18 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepo reviewRepo;
     private final ReviewMapper reviewMapper;
@@ -51,27 +55,21 @@ public class ReviewService {
             review.setIsActive(true);
         }
 
-        EvaluationSummary evaluationSummary = EvaluationSummary.builder()
-                .communitySummary(request.getEvaluation().getCommunity())
-                .potentialSummary(request.getEvaluation().getPotential())
-                .securitySummary(request.getEvaluation().getPotential())
-                .tokenomicsSummary(request.getEvaluation().getTokenomics())
-                .trustSummary(request.getEvaluation().getTrust())
-                .build();
-        reviewSummaryService.create(projectId, evaluationSummary, countProjectReviews(projectId), 0f);
-
+        review.setAverage(calculateAvg(review.getEvaluation()));
         review = reviewRepo.save(review);
 
-        ReviewResponse response = reviewMapper.toReviewResponse(review);
-        response.setAverage(calculateAvg(response.getEvaluation()));
-        return response;
+        if (!reviewSummaryService.existsByProjectId(projectId)) {
+            reviewSummaryService.create(projectId, review, countProjectReviews(projectId));
+        }
+
+        return reviewMapper.toReviewResponse(review);
     }
 
-    private Float calculateAvg(EvaluationResponse evaluation) throws IllegalAccessException {
+    private BigDecimal calculateAvg(Evaluation evaluation) throws IllegalAccessException {
         long totalSum = 0L;
         int numberOfFields = 0;
 
-        Field[] fields = EvaluationResponse.class.getDeclaredFields();
+        Field[] fields = Evaluation.class.getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);
@@ -83,14 +81,13 @@ public class ReviewService {
             }
         }
 
-        if (numberOfFields == 0) return 0f;
+        if (numberOfFields == 0) return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
-        float avg = ((float) totalSum / numberOfFields) / 20F;
-
-        return Math.round(avg * 100.0f) / 100.0f;
+        return new BigDecimal((double) totalSum / numberOfFields / 20.0)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
-    public PaginationResponse<ReviewResponse> getFromProject(String projectId, @Valid PaginationRequest request, boolean isActive) {
+    public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
         Sort sort = getDirectionAndField(request.isDirection(), request.getSortBy());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
@@ -104,11 +101,11 @@ public class ReviewService {
                 .build();
     }
 
-    public Review findRecent(String projectId) {
+    public Review findRecent(UUID projectId) {
         return reviewRepo.findFirstByProjectIdOrderByCreatedAtDesc(projectId);
     }
 
-    public Long sumAllColumnValueByProject(String column, String projectId) {
+    public Long sumAllColumnValueByProject(String column, UUID projectId) {
         Aggregation aggregation = newAggregation(
                 match(Criteria.where("projectId").is(projectId)),
                 group().sum("evaluation." + column).as("totalSum")
@@ -160,5 +157,19 @@ public class ReviewService {
                 "createdAt";
 
         return Sort.by(sortDirection, actualSortByField);
+    }
+
+    public Long countByProjectId(UUID projectContract) {
+        return reviewRepo.countByProjectId(projectContract);
+    }
+
+    public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
+        Review review = reviewRepo.findByClientAddressAndProjectId(clientAddress, projectId)
+                .orElseThrow(() -> new NotFoundException("Review not found for project and client"));
+        return reviewMapper.toReviewResponse(review);
+    }
+
+    public void deleteFromProjectAndClient(UUID projectId, String clientAddress) {
+        reviewRepo.deleteByProjectIdAndClientAddress(projectId, clientAddress);
     }
 }

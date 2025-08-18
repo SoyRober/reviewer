@@ -8,7 +8,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -17,20 +20,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewSummary {
-
     @Id
-    @Indexed(unique = true)
     private UUID id;
-
     @Indexed(unique = true)
     private UUID projectId;
-
     @LastModifiedDate
     private Instant updatedAt;
-
     private EvaluationSummary evaluationSummary;
-
     private Long totalReviews;
-
-    private Float average;
+    @Field(targetType = FieldType.DECIMAL128)
+    private BigDecimal average;
 }

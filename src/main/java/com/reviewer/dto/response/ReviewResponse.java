@@ -5,13 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewResponse {
+    private UUID id;
+
     private String clientAddress;
 
     private String projectId;
@@ -24,5 +28,5 @@ public class ReviewResponse {
 
     private EvaluationResponse evaluation;
 
-    private Float average;
+    private BigDecimal average;
 }
