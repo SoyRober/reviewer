@@ -1,11 +1,16 @@
 package com.reviewer.service;
 
+import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewReportRequest;
 import com.reviewer.dto.response.ReviewReportResponse;
 import com.reviewer.entity.ReviewReport;
 import com.reviewer.mapper.ReviewReportMapper;
 import com.reviewer.repository.ReviewReportRepo;
+import com.reviewer.util.FilterUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -17,6 +22,7 @@ import java.util.UUID;
 public class ReviewReportService {
     private final ReviewReportRepo reviewReportRepo;
     private final ReviewReportMapper reviewReportMapper;
+    private final FilterUtil filterUtil;
 
     public ReviewReportResponse create(ReviewReportRequest request) {
         ReviewReport report = reviewReportRepo.findByClientAddressAndReviewId(request.getClientAddress(), request.getReviewId())
@@ -35,18 +41,13 @@ public class ReviewReportService {
         return reviewReportMapper.toReviewReportResponse(report);
     }
 
-    public List<ReviewReportResponse> getAllFiltered(ReviewReportRequest request) {
-        List<ReviewReport> list = List.of();
+    public List<ReviewReportResponse> getAllFiltered(PaginationRequest request) {
+        List<String> validSortFields = List.of("clientAddress", "reviewId", "createdAt");
+        String defaultSortField = "createdAt";
+        Sort sort = filterUtil.getDirectionAndField(request.isDirection(), request.getSortBy(), validSortFields, defaultSortField);
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-        if (request.getReviewId() != null && request.getClientAddress() != null) {
-            list = reviewReportRepo.findByClientAddressAndReviewId(request.getClientAddress(), request.getReviewId())
-                    .map(List::of)
-                    .orElse(List.of());
-        } else if (request.getReviewId() != null) {
-            list = reviewReportRepo.findAllByReviewId(request.getReviewId());
-        } else if (request.getClientAddress() != null) {
-            list = reviewReportRepo.findAllByClientAddress(request.getClientAddress());
-        }
+        List<ReviewReport> list = reviewReportRepo.findAll(pageable).getContent();
 
         return list.stream()
                 .map(reviewReportMapper::toReviewReportResponse)

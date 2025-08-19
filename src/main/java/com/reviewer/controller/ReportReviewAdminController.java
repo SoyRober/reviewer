@@ -1,6 +1,7 @@
 package com.reviewer.controller;
 
 
+import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewReportRequest;
 import com.reviewer.dto.response.ReviewReportResponse;
 import com.reviewer.service.ReviewReportService;
@@ -14,12 +15,12 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/reviews/report")
-public class ReportReviewController {
+@RequestMapping("/api/reviews/report/admin")
+public class ReportReviewAdminController {
     private final ReviewReportService reviewReportService;
 
-    @PostMapping
-    public ResponseEntity<ReviewReportResponse> createReport(@RequestBody ReviewReportRequest request) {
-        return ResponseEntity.ok(reviewReportService.create(request));
+    @GetMapping
+    public ResponseEntity<List<ReviewReportResponse>> getAllReports(@ModelAttribute PaginationRequest request) {
+        return ResponseEntity.ok(reviewReportService.getAllFiltered(request));
     }
 }
