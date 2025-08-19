@@ -10,6 +10,7 @@ import com.reviewer.mapper.ReviewMapper;
 import com.reviewer.model.Evaluation;
 import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewRepo;
+import com.reviewer.util.FilterUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class ReviewService {
     private final ReviewMapper reviewMapper;
     private final MongoTemplate mongoTemplate;
     private final ReviewSummaryService reviewSummaryService;
+    private final FilterUtil filterUtil;
 
     public ReviewResponse create(ReviewRequest request, UUID projectId) throws IllegalAccessException {
         Review review = reviewRepo.findByClientAddressAndProjectId(request.getClientAddress(), projectId)
@@ -88,7 +90,9 @@ public class ReviewService {
     }
 
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
-        Sort sort = getDirectionAndField(request.isDirection(), request.getSortBy());
+        List<String> validSortFields = List.of("clientAddress", "projectId", "createdAt", "average");
+        String defaultSortField = "createdAt";
+        Sort sort = filterUtil.getDirectionAndField(request.isDirection(), request.getSortBy(), validSortFields, defaultSortField);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<Review> reviews = isActive ?
@@ -103,23 +107,6 @@ public class ReviewService {
 
     public Review findRecent(UUID projectId) {
         return reviewRepo.findFirstByProjectIdOrderByCreatedAtDesc(projectId);
-    }
-
-    public Long sumAllColumnValueByProject(String column, UUID projectId) {
-        Aggregation aggregation = newAggregation(
-                match(Criteria.where("projectId").is(projectId)),
-                group().sum("evaluation." + column).as("totalSum")
-        );
-
-        AggregationResults<org.bson.Document> results = mongoTemplate.aggregate(
-                aggregation,
-                Review.class,
-                org.bson.Document.class
-        );
-
-        org.bson.Document result = results.getUniqueMappedResult();
-
-        return result != null ? result.getLong("totalSum") : 0L;
     }
 
     public Long countProjectReviews(UUID projectId) {
