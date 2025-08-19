@@ -10,9 +10,9 @@ import java.util.UUID;
 
 @Repository
 public interface ReviewReportRepo extends MongoRepository<ReviewReport, UUID> {
-    Optional<ReviewReport> findByClientIdAndReviewId(UUID request, UUID reviewId);
+    Optional<ReviewReport> findByClientAddressAndReviewId(String request, UUID reviewId);
 
     List<ReviewReport> findAllByReviewId(UUID reviewId);
 
-    List<ReviewReport> findAllByClientId(UUID clientId);
+    List<ReviewReport> findAllByClientAddress(String clientId);
 }

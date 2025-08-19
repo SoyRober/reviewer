@@ -19,13 +19,12 @@ public class ReportReviewController {
     private final ReviewReportService reviewReportService;
 
     @PostMapping
-    public ResponseEntity<ReviewReportResponse> createReport(ReviewReportRequest request) {
+    public ResponseEntity<ReviewReportResponse> createReport(@RequestBody ReviewReportRequest request) {
         return ResponseEntity.ok(reviewReportService.create(request));
     }
 
     @GetMapping
     public ResponseEntity<List<ReviewReportResponse>> getAllReports(@ModelAttribute ReviewReportRequest request) {
-        List<ReviewReportResponse> reports = reviewReportService.getAllFiltered(request);
-        return ResponseEntity.ok(reports);
+        return ResponseEntity.ok(reviewReportService.getAllFiltered(request));
     }
 }

@@ -6,7 +6,5 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface ReviewReportMapper {
-    ReviewReportResponse toReviewReportResponseList(ReviewReport report);
-
     ReviewReportResponse toReviewReportResponse(ReviewReport reviewReport);
 }

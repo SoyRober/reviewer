@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,33 +19,33 @@ public class ReviewReportService {
     private final ReviewReportMapper reviewReportMapper;
 
     public ReviewReportResponse create(ReviewReportRequest request) {
-        ReviewReport report = reviewReportRepo.findByClientIdAndReviewId(request.getClientId(), request.getReviewId())
+        ReviewReport report = reviewReportRepo.findByClientAddressAndReviewId(request.getClientAddress(), request.getReviewId())
                 .orElseGet(ReviewReport::new);
 
         if (report.getId() == null) {
             report = ReviewReport.builder()
                     .id(UUID.randomUUID())
                     .reviewId(request.getReviewId())
-                    .clientId(request.getClientId())
+                    .clientAddress(request.getClientAddress())
                     .createdAt(Instant.now())
                     .build();
             reviewReportRepo.save(report);
         }
 
-        return reviewReportMapper.toReviewReportResponseList(report);
+        return reviewReportMapper.toReviewReportResponse(report);
     }
 
     public List<ReviewReportResponse> getAllFiltered(ReviewReportRequest request) {
         List<ReviewReport> list = List.of();
 
-        if (request.getReviewId() != null && request.getClientId() != null) {
-            list = reviewReportRepo.findByClientIdAndReviewId(request.getClientId(), request.getReviewId())
+        if (request.getReviewId() != null && request.getClientAddress() != null) {
+            list = reviewReportRepo.findByClientAddressAndReviewId(request.getClientAddress(), request.getReviewId())
                     .map(List::of)
                     .orElse(List.of());
         } else if (request.getReviewId() != null) {
             list = reviewReportRepo.findAllByReviewId(request.getReviewId());
-        } else if (request.getClientId() != null) {
-            list = reviewReportRepo.findAllByClientId(request.getClientId());
+        } else if (request.getClientAddress() != null) {
+            list = reviewReportRepo.findAllByClientAddress(request.getClientAddress());
         }
 
         return list.stream()

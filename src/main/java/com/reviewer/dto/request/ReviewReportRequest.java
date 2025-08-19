@@ -10,7 +10,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewReportRequest {
-    private UUID clientId;
+    private String clientAddress;
 
     private UUID reviewId;
 }
