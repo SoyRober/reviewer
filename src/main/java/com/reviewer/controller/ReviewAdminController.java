@@ -33,4 +33,16 @@ public class ReviewAdminController {
                                                                                         @RequestParam(defaultValue = "true") Boolean isActive) {
         return ResponseEntity.ok(reviewService.getFromClient(client, request, isActive));
     }
+
+    @DeleteMapping("/project/{projectId}/client/{clientAddress}")
+    public ResponseEntity<Void> deleteReviewFromProjectAndClient(@PathVariable UUID projectId,
+                                                                 @PathVariable String clientAddress) {
+        reviewService.deleteFromProjectAndClient(projectId, clientAddress);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/activate/{reviewId}")
+    public ResponseEntity<ReviewResponse> activateReview(@PathVariable UUID reviewId) {
+        return ResponseEntity.ok(reviewService.activateAndDeactivate(reviewId));
+    }
 }

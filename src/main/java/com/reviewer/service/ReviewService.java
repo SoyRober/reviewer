@@ -8,7 +8,6 @@ import com.reviewer.entity.Review;
 import com.reviewer.exception.NotFoundException;
 import com.reviewer.mapper.ReviewMapper;
 import com.reviewer.model.Evaluation;
-import com.reviewer.model.EvaluationSummary;
 import com.reviewer.repository.ReviewRepo;
 import com.reviewer.util.FilterUtil;
 import jakarta.validation.Valid;
@@ -18,10 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -29,10 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Slf4j
 @Service
@@ -40,7 +32,6 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 public class ReviewService {
     private final ReviewRepo reviewRepo;
     private final ReviewMapper reviewMapper;
-    private final MongoTemplate mongoTemplate;
     private final ReviewSummaryService reviewSummaryService;
     private final FilterUtil filterUtil;
 
@@ -127,7 +118,7 @@ public class ReviewService {
                 .build();
     }
 
-    private Sort getDirectionAndField (boolean directionBool, String sortBy) {
+    private Sort getDirectionAndField(boolean directionBool, String sortBy) {
         Sort.Direction sortDirection = Sort.Direction.ASC;
         String direction = directionBool ? "desc" : "asc";
 
@@ -153,10 +144,19 @@ public class ReviewService {
     public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
         Review review = reviewRepo.findByClientAddressAndProjectId(clientAddress, projectId)
                 .orElseThrow(() -> new NotFoundException("Review not found for project and client"));
+
         return reviewMapper.toReviewResponse(review);
     }
 
     public void deleteFromProjectAndClient(UUID projectId, String clientAddress) {
         reviewRepo.deleteByProjectIdAndClientAddress(projectId, clientAddress);
+    }
+
+    public ReviewResponse activateAndDeactivate(UUID reviewId) {
+        Review review = reviewRepo.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
+        review.setIsActive(!review.getIsActive());
+
+        return reviewMapper.toReviewResponse(reviewRepo.save(review));
     }
 }

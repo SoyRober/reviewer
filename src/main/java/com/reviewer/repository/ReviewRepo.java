@@ -26,4 +26,8 @@ public interface ReviewRepo extends MongoRepository<Review, UUID> {
     Page<Review> findByClientAddress(String client, Pageable pageable);
 
     void deleteByProjectIdAndClientAddress(UUID projectId, String clientAddress);
+
+    Optional<Review> findByClientAddressAndProjectIdAndIsActive(String clientAddress, UUID projectId, boolean b);
+
+    Optional<Review> findByClientAddressAndProjectIdAndIsActiveTrue(String clientAddress, UUID projectId);
 }

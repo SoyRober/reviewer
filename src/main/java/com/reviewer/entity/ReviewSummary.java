@@ -22,12 +22,17 @@ import java.util.UUID;
 public class ReviewSummary {
     @Id
     private UUID id;
+
     @Indexed(unique = true)
     private UUID projectId;
+
     @LastModifiedDate
     private Instant updatedAt;
+
     private EvaluationSummary evaluationSummary;
+
     private Long totalReviews;
+
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal average;
 }
