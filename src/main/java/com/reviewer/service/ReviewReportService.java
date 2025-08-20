@@ -53,4 +53,8 @@ public class ReviewReportService {
                 .map(reviewReportMapper::toReviewReportResponse)
                 .toList();
     }
+
+    public long deleteAllCreatedAtBefore(Instant sixtyDaysAgo) {
+        return reviewReportRepo.deleteByCreatedAtBefore(sixtyDaysAgo);
+    }
 }
