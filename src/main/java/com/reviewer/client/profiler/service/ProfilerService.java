@@ -1,7 +1,7 @@
-package com.client.profiler.service;
+package com.reviewer.client.profiler.service;
 
-import com.client.profiler.ProfilerHttpClient;
-import com.client.profiler.model.ActionType;
+import com.reviewer.client.profiler.ProfilerHttpClient;
+import com.reviewer.client.profiler.model.ActionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

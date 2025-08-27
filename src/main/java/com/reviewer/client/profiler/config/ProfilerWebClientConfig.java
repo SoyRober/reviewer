@@ -1,6 +1,6 @@
-package com.client.profiler.config;
+package com.reviewer.client.profiler.config;
 
-import com.client.profiler.ProfilerHttpClient;
+import com.reviewer.client.profiler.ProfilerHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +25,9 @@ public class ProfilerWebClientConfig {
 
     @Bean
     public ProfilerHttpClient ProfilerHttpClient() {
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builder().build();
+        WebClient webClient = createWebClient();
+        WebClientAdapter adapter = WebClientAdapter.create(webClient);
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builder().exchangeAdapter(adapter).build();
 
         return factory.createClient(ProfilerHttpClient.class);
     }
