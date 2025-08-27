@@ -1,5 +1,7 @@
 package com.reviewer.service;
 
+import com.client.profiler.model.ActionType;
+import com.client.profiler.service.ProfilerService;
 import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewRequest;
 import com.reviewer.dto.response.PaginationResponse;
@@ -34,6 +36,7 @@ public class ReviewService {
     private final ReviewMapper reviewMapper;
     private final ReviewSummaryService reviewSummaryService;
     private final FilterUtil filterUtil;
+    private final ProfilerService profilerService;
 
     public ReviewResponse create(ReviewRequest request, UUID projectId) throws IllegalAccessException {
         Review review = reviewRepo.findByClientAddressAndProjectId(request.getClientAddress(), projectId)
@@ -46,6 +49,8 @@ public class ReviewService {
             review.setProjectId(projectId);
             review.setCreatedAt(Instant.now());
             review.setIsActive(true);
+
+            profilerService.updateExperience(request.getClientAddress(), ActionType.ADD_REVIEW);
         }
 
         review.setAverage(calculateAvg(review.getEvaluation()));
