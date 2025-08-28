@@ -1,7 +1,7 @@
 package com.reviewer.service;
 
-import com.client.profiler.model.ActionType;
-import com.client.profiler.service.ProfilerService;
+import com.reviewer.client.profiler.model.ActionType;
+import com.reviewer.client.profiler.service.ProfilerService;
 import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewRequest;
 import com.reviewer.dto.response.PaginationResponse;

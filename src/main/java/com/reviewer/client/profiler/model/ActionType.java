@@ -1,4 +1,4 @@
-package com.client.profiler.model;
+package com.reviewer.client.profiler.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

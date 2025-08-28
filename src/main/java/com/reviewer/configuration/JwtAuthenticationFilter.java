@@ -49,25 +49,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             if (jwtService.isTokenValid(jwt)) {
+                log.info(jwt);
                 DecodedJWT decodedJWT = JWT.decode(jwt);
+                log.info("token decodeado");
                 String role = decodedJWT.getClaim("auth").asString();
                 List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
-
+                log.info("Pillamos autoridades");
                 // Creamos un UserDetails completo con los roles directamente del token
                 UserDetails userDetails = new User(
                         username,
                         "",
                         authorities
                 );
+                log.info("Hacemos details");
+                log.info(userDetails.getAuthorities().stream().toString());
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
                         authorities
                 );
+
+                log.info("Hacemos authentication");
+
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
+
+                log.info("Ponemos el details");
+
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
                 log.warn("JWT token is invalid for user: {}", username);
