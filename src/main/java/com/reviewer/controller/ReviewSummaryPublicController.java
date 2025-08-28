@@ -15,8 +15,8 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/review-summary")
-public class ReviewSummaryController {
+@RequestMapping("/api/public/review-summary")
+public class ReviewSummaryPublicController {
     private final ReviewSummaryService reviewSummaryService;
 
     @GetMapping("/project/evaluation/{projectId}")

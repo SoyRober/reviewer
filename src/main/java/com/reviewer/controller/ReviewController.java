@@ -27,28 +27,29 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.create(request, projectId));
     }
 
-    @GetMapping("/project/{projectId}")
-    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProject(@PathVariable UUID projectId,
-                                                                                         @ModelAttribute @Valid PaginationRequest request) {
-        return ResponseEntity.ok(reviewService.getFromProject(projectId, request, true));
-    }
-
-    @GetMapping("/client/{clientAddress}")
-    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromClient(@PathVariable String clientAddress,
-                                                                                        @ModelAttribute @Valid PaginationRequest request) {
-        return ResponseEntity.ok(reviewService.getFromClient(clientAddress, request, true));
-    }
-
-    @GetMapping("/project/{projectId}/client/{clientAddress}")
-    public ResponseEntity<ReviewResponse> getReviewFromProjectAndClient(@PathVariable UUID projectId,
-                                                                           @PathVariable String clientAddress) {
-        return ResponseEntity.ok(reviewService.getFromProjectAndClient(projectId, clientAddress));
-    }
-
     @DeleteMapping("/project/{projectId}/client/{clientAddress}")
     public ResponseEntity<Void> deleteReviewFromProjectAndClient(@PathVariable UUID projectId,
                                                                   @PathVariable String clientAddress) {
         reviewService.deleteFromProjectAndClient(projectId, clientAddress);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/project/{project}")
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProjectAdmin(@PathVariable UUID project,
+                                                                                              @ModelAttribute @Valid PaginationRequest request,
+                                                                                              @RequestParam(defaultValue = "true") Boolean isActive) {
+        return ResponseEntity.ok(reviewService.getFromProject(project, request, isActive));
+    }
+
+    @GetMapping("/client/{client}")
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromClient(@PathVariable String client,
+                                                                                        @ModelAttribute @Valid PaginationRequest request,
+                                                                                        @RequestParam(defaultValue = "true") Boolean isActive) {
+        return ResponseEntity.ok(reviewService.getFromClient(client, request, isActive));
+    }
+
+    @PutMapping("/activate/{reviewId}")
+    public ResponseEntity<ReviewResponse> activateReview(@PathVariable UUID reviewId) {
+        return ResponseEntity.ok(reviewService.activateAndDeactivate(reviewId));
     }
 }

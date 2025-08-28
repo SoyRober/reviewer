@@ -33,10 +33,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepo reviewRepo;
-    private final ReviewMapper reviewMapper;
-    private final ReviewSummaryService reviewSummaryService;
     private final FilterUtil filterUtil;
+    private final ReviewMapper reviewMapper;
     private final ProfilerService profilerService;
+    private final ReviewSummaryService reviewSummaryService;
 
     public ReviewResponse create(ReviewRequest request, UUID projectId) throws IllegalAccessException {
         Review review = reviewRepo.findByClientAddressAndProjectId(request.getClientAddress(), projectId)
@@ -85,6 +85,7 @@ public class ReviewService {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
+    //Todo: use filterutil
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
         List<String> validSortFields = List.of("clientAddress", "projectId", "createdAt", "average");
         String defaultSortField = "createdAt";
@@ -123,6 +124,7 @@ public class ReviewService {
                 .build();
     }
 
+    //Todo: use filterutil
     private Sort getDirectionAndField(boolean directionBool, String sortBy) {
         Sort.Direction sortDirection = Sort.Direction.ASC;
         String direction = directionBool ? "desc" : "asc";

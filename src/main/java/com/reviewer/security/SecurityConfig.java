@@ -47,11 +47,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/report/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/reviews/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
-                        .requestMatchers("/api/reviews/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.accessDeniedHandler((request, response, accessDeniedException) -> {

@@ -1,6 +1,7 @@
 package com.reviewer.controller;
 
 
+import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewReportRequest;
 import com.reviewer.dto.response.ReviewReportResponse;
 import com.reviewer.service.ReviewReportService;
@@ -21,5 +22,10 @@ public class ReportReviewController {
     @PostMapping
     public ResponseEntity<ReviewReportResponse> createReport(@RequestBody ReviewReportRequest request) {
         return ResponseEntity.ok(reviewReportService.create(request));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ReviewReportResponse>> getAllReports(@ModelAttribute PaginationRequest request) {
+        return ResponseEntity.ok(reviewReportService.getAllFiltered(request));
     }
 }
