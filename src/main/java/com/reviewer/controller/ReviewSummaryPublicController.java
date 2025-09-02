@@ -16,7 +16,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/public/review-summary")
-public class ReviewSummaryController {
+public class ReviewSummaryPublicController {
     private final ReviewSummaryService reviewSummaryService;
 
     @GetMapping("/project/evaluation/{projectId}")
