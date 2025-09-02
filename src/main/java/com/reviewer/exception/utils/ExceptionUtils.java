@@ -17,7 +17,7 @@ public class ExceptionUtils {
             StackTraceElement[] stackTrace = e.getStackTrace();
             for (StackTraceElement stackTraceElement : stackTrace) {
                 error.append(stackTraceElement).append("\n");
-                if (stackTraceElement.toString().toLowerCase().contains("mistertransfer")) return error.toString();
+                if (stackTraceElement.toString().toLowerCase().contains("holdhub")) return error.toString();
             }
 
         } catch (Exception ex) {
