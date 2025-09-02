@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+//TODO: refactor to use util
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -146,19 +147,14 @@ public class ReviewService {
         return reviewRepo.countByProjectId(projectContract);
     }
 
-    public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
-        Review review = reviewRepo.findByClientAddressAndProjectId(clientAddress, projectId)
-                .orElseThrow(() -> new NotFoundException("Review not found for project and client"));
 
-        return reviewMapper.toReviewResponse(review);
+    //TODO: deactivate review and remove 1 exp
+    public void deleteById(UUID id) {
+        reviewRepo.deleteById(id);
     }
 
-    public void deleteFromProjectAndClient(UUID projectId, String clientAddress) {
-        reviewRepo.deleteByProjectIdAndClientAddress(projectId, clientAddress);
-    }
-
-    public ReviewResponse activateAndDeactivate(UUID reviewId) {
-        Review review = reviewRepo.findById(reviewId)
+    public ReviewResponse activateAndDeactivate(UUID id) {
+        Review review = reviewRepo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         review.setIsActive(!review.getIsActive());
 
