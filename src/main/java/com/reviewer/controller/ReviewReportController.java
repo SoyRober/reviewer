@@ -15,9 +15,14 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/reviews/report/admin")
-public class ReportReviewAdminController {
+@RequestMapping("/api/reviews/report")
+public class ReviewReportController {
     private final ReviewReportService reviewReportService;
+
+    @PostMapping
+    public ResponseEntity<ReviewReportResponse> createReport(@RequestBody ReviewReportRequest request) {
+        return ResponseEntity.ok(reviewReportService.create(request));
+    }
 
     @GetMapping
     public ResponseEntity<List<ReviewReportResponse>> getAllReports(@ModelAttribute PaginationRequest request) {

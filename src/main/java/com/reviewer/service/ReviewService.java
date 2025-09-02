@@ -1,5 +1,7 @@
 package com.reviewer.service;
 
+import com.reviewer.client.profiler.model.ActionType;
+import com.reviewer.client.profiler.service.ProfilerService;
 import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewRequest;
 import com.reviewer.dto.response.PaginationResponse;
@@ -26,14 +28,16 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+//TODO: refactor to use util
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepo reviewRepo;
-    private final ReviewMapper reviewMapper;
-    private final ReviewSummaryService reviewSummaryService;
     private final FilterUtil filterUtil;
+    private final ReviewMapper reviewMapper;
+    private final ProfilerService profilerService;
+    private final ReviewSummaryService reviewSummaryService;
 
     public ReviewResponse create(ReviewRequest request, UUID projectId) throws IllegalAccessException {
         Review review = reviewRepo.findByClientAddressAndProjectId(request.getClientAddress(), projectId)
@@ -46,6 +50,8 @@ public class ReviewService {
             review.setProjectId(projectId);
             review.setCreatedAt(Instant.now());
             review.setIsActive(true);
+
+            profilerService.updateExperience(request.getClientAddress(), ActionType.ADD_REVIEW);
         }
 
         review.setAverage(calculateAvg(review.getEvaluation()));
@@ -80,6 +86,7 @@ public class ReviewService {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
+    //Todo: use filterutil
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
         List<String> validSortFields = List.of("clientAddress", "projectId", "createdAt", "average");
         String defaultSortField = "createdAt";
@@ -118,6 +125,7 @@ public class ReviewService {
                 .build();
     }
 
+    //Todo: use filterutil
     private Sort getDirectionAndField(boolean directionBool, String sortBy) {
         Sort.Direction sortDirection = Sort.Direction.ASC;
         String direction = directionBool ? "desc" : "asc";
@@ -141,19 +149,14 @@ public class ReviewService {
         return reviewRepo.countByProjectId(projectContract);
     }
 
-    public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
-        Review review = reviewRepo.findByClientAddressAndProjectId(clientAddress, projectId)
-                .orElseThrow(() -> new NotFoundException("Review not found for project and client"));
 
-        return reviewMapper.toReviewResponse(review);
+    //TODO: deactivate review and remove 1 exp
+    public void deleteById(UUID id) {
+        reviewRepo.deleteById(id);
     }
 
-    public void deleteFromProjectAndClient(UUID projectId, String clientAddress) {
-        reviewRepo.deleteByProjectIdAndClientAddress(projectId, clientAddress);
-    }
-
-    public ReviewResponse activateAndDeactivate(UUID reviewId) {
-        Review review = reviewRepo.findById(reviewId)
+    public ReviewResponse activateAndDeactivate(UUID id) {
+        Review review = reviewRepo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         review.setIsActive(!review.getIsActive());
 
