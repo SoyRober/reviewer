@@ -41,7 +41,7 @@ public class Review {
 
     private Evaluation evaluation;
 
-    private Boolean isActive = false;
+    private Boolean isActive = true;
 
     @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal average;
