@@ -30,10 +30,8 @@ public class ReviewReportService {
 
         if (report.getId() == null) {
             report = ReviewReport.builder()
-                    .id(UUID.randomUUID())
                     .reviewId(request.getReviewId())
                     .clientAddress(request.getClientAddress())
-                    .createdAt(Instant.now())
                     .build();
             reviewReportRepo.save(report);
         }

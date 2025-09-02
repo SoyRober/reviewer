@@ -23,11 +23,13 @@ import java.util.UUID;
 })
 public class ReviewReport {
     @Id
-    private UUID id;
+    @Builder.Default
+    private UUID id = UUID.randomUUID();
 
     private UUID reviewId;
 
     private String clientAddress;
 
-    private Instant createdAt;
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 }
