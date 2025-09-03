@@ -26,7 +26,8 @@ import java.util.UUID;
 })
 public class Review {
     @Id
-    private UUID id;
+    @Builder.Default
+    private UUID id = UUID.randomUUID();
 
     private String clientAddress;
 
@@ -34,7 +35,8 @@ public class Review {
 
     private String comment;
 
-    private Instant createdAt;
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 
     @LastModifiedDate
     private Instant updatedAt;

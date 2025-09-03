@@ -28,7 +28,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-//TODO: refactor to use util
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -86,7 +85,6 @@ public class ReviewService {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-    //Todo: use filterutil
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
         List<String> validSortFields = List.of("clientAddress", "projectId", "createdAt", "average");
         String defaultSortField = "createdAt";
@@ -112,7 +110,9 @@ public class ReviewService {
     }
 
     public PaginationResponse<ReviewResponse> getFromClient(String client, @Valid PaginationRequest request, boolean isActive) {
-        Sort sort = getDirectionAndField(request.isDirection(), request.getSortBy());
+        List<String> validSortFields = List.of("clientAddress", "projectId", "createdAt", "average");
+        String defaultSortField = "createdAt";
+        Sort sort = filterUtil.getDirectionAndField(request.isDirection(), request.getSortBy(), validSortFields, defaultSortField);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<Review> reviews = isActive ?
@@ -125,38 +125,12 @@ public class ReviewService {
                 .build();
     }
 
-    //Todo: use filterutil
-    private Sort getDirectionAndField(boolean directionBool, String sortBy) {
-        Sort.Direction sortDirection = Sort.Direction.ASC;
-        String direction = directionBool ? "desc" : "asc";
-
-        try {
-            sortDirection = Sort.Direction.fromString(direction);
-            log.error("Sort direction provided: {}", direction);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid sort direction provided: {}. Defaulting to ASC.", direction);
-        }
-
-        List<String> validSortByFields = List.of("clientAddress", "projectId", "createdAt", "isActive");
-        String actualSortByField = validSortByFields.contains(sortBy.trim()) ?
-                sortBy.trim() :
-                "createdAt";
-
-        return Sort.by(sortDirection, actualSortByField);
-    }
-
     public Long countByProjectId(UUID projectContract) {
         return reviewRepo.countByProjectId(projectContract);
     }
 
-
-    //TODO: deactivate review and remove 1 exp
-    public void deleteById(UUID id) {
-        reviewRepo.deleteById(id);
-    }
-
-    public ReviewResponse activateAndDeactivate(UUID id) {
-        Review review = reviewRepo.findById(id)
+    public ReviewResponse activateAndDeactivate(UUID reviewId) {
+        Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         review.setIsActive(!review.getIsActive());
 
