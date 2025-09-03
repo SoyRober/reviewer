@@ -4,12 +4,10 @@ import com.reviewer.dto.request.PaginationRequest;
 import com.reviewer.dto.request.ReviewRequest;
 import com.reviewer.dto.response.PaginationResponse;
 import com.reviewer.dto.response.ReviewResponse;
-import com.reviewer.dto.response.ReviewSummaryResponse;
 import com.reviewer.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,15 +25,8 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.create(request, projectId));
     }
 
-    @DeleteMapping("/project/{projectId}/client/{clientAddress}")
-    public ResponseEntity<Void> deleteReviewFromProjectAndClient(@PathVariable UUID projectId,
-                                                                  @PathVariable String clientAddress) {
-        reviewService.deleteFromProjectAndClient(projectId, clientAddress);
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/project/{project}")
-    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProjectAdmin(@PathVariable UUID project,
+    public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProject(@PathVariable UUID project,
                                                                                               @ModelAttribute @Valid PaginationRequest request,
                                                                                               @RequestParam(defaultValue = "true") Boolean isActive) {
         return ResponseEntity.ok(reviewService.getFromProject(project, request, isActive));
@@ -48,8 +39,14 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getFromClient(client, request, isActive));
     }
 
-    @PutMapping("/activate/{reviewId}")
-    public ResponseEntity<ReviewResponse> activateReview(@PathVariable UUID reviewId) {
-        return ResponseEntity.ok(reviewService.activateAndDeactivate(reviewId));
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReviewFromProjectAndClient(@PathVariable UUID id) {
+        reviewService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/activate/{Id}")
+    public ResponseEntity<ReviewResponse> activateReview(@PathVariable UUID id) {
+        return ResponseEntity.ok(reviewService.activateAndDeactivate(id));
     }
 }

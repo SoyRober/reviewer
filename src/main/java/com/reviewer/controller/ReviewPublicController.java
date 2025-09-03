@@ -31,10 +31,4 @@ public class ReviewPublicController {
                                                                                         @ModelAttribute @Valid PaginationRequest request) {
         return ResponseEntity.ok(reviewService.getFromClient(clientAddress, request, true));
     }
-
-    @GetMapping("/project/{projectId}/client/{clientAddress}")
-    public ResponseEntity<ReviewResponse> getReviewFromProjectAndClient(@PathVariable UUID projectId,
-                                                                           @PathVariable String clientAddress) {
-        return ResponseEntity.ok(reviewService.getFromProjectAndClient(projectId, clientAddress));
-    }
 }
