@@ -20,11 +20,6 @@ import java.util.UUID;
 public class ReviewController {
     private final ReviewService reviewService;
 
-    @PostMapping("/{projectId}")
-    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request, @PathVariable UUID projectId) throws IllegalAccessException {
-        return ResponseEntity.ok(reviewService.create(request, projectId));
-    }
-
     @GetMapping("/project/{project}")
     public ResponseEntity<PaginationResponse<ReviewResponse>> paginateReviewsFromProject(@PathVariable UUID project,
                                                                                               @ModelAttribute @Valid PaginationRequest request,
@@ -39,14 +34,19 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getFromClient(client, request, isActive));
     }
 
+    @PutMapping("/activate/{Id}")
+    public ResponseEntity<ReviewResponse> activateReview(@PathVariable UUID id) {
+        return ResponseEntity.ok(reviewService.activateAndDeactivate(id));
+    }
+
+    @PostMapping("/{projectId}")
+    public ResponseEntity<ReviewResponse> create(@RequestBody @Valid ReviewRequest request, @PathVariable UUID projectId) throws IllegalAccessException {
+        return ResponseEntity.ok(reviewService.create(request, projectId));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReviewFromProjectAndClient(@PathVariable UUID id) {
         reviewService.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/activate/{Id}")
-    public ResponseEntity<ReviewResponse> activateReview(@PathVariable UUID id) {
-        return ResponseEntity.ok(reviewService.activateAndDeactivate(id));
     }
 }

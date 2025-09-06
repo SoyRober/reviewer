@@ -142,4 +142,8 @@ public class ReviewService {
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         return reviewMapper.toReviewResponse(review);
     }
+
+    public void deleteById(UUID id) {
+        reviewRepo.deleteById(id);
+    }
 }
