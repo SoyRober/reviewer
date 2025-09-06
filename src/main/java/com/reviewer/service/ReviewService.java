@@ -136,4 +136,10 @@ public class ReviewService {
 
         return reviewMapper.toReviewResponse(reviewRepo.save(review));
     }
+
+    public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
+        Review review = reviewRepo.findByClientAddressAndProjectIdAndIsActiveTrue(clientAddress, projectId)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
+        return reviewMapper.toReviewResponse(review);
+    }
 }
