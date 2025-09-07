@@ -20,4 +20,8 @@ public class ReviewRequest {
 
     @NotNull
     private EvaluationRequest evaluation;
+
+    public void setClientAddress(String clientAddress) {
+        this.clientAddress = clientAddress != null ? clientAddress.toLowerCase() : null;
+    }
 }

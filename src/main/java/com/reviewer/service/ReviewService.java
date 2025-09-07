@@ -11,21 +11,18 @@ import com.reviewer.exception.NotFoundException;
 import com.reviewer.mapper.ReviewMapper;
 import com.reviewer.model.Evaluation;
 import com.reviewer.repository.ReviewRepo;
-import com.reviewer.util.FilterUtil;
+import com.reviewer.util.FilterUtils;
+import com.reviewer.util.NormalizationUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -33,32 +30,25 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepo reviewRepo;
-    private final FilterUtil filterUtil;
     private final ReviewMapper reviewMapper;
     private final ProfilerService profilerService;
     private final ReviewSummaryService reviewSummaryService;
 
     public ReviewResponse create(ReviewRequest request, UUID projectId) throws IllegalAccessException {
         Review review = reviewRepo.findByClientAddressAndProjectId(request.getClientAddress(), projectId)
-                .orElse(new Review());
+                .orElse(null);
 
-        reviewMapper.updateReviewFromReviewRequest(request, review);
-
-        if (review.getId() == null) {
-            review.setId(UUID.randomUUID());
-            review.setProjectId(projectId);
-            review.setCreatedAt(Instant.now());
-            review.setIsActive(true);
-
+        if (review == null) {
+            review = Review.builder().projectId(projectId).build();
             profilerService.updateExperience(request.getClientAddress(), ActionType.ADD_REVIEW);
         }
 
         review.setAverage(calculateAvg(review.getEvaluation()));
+        reviewMapper.updateReviewFromReviewRequest(request, review);
         review = reviewRepo.save(review);
 
-        if (!reviewSummaryService.existsByProjectId(projectId)) {
+        if (!reviewSummaryService.existsByProjectId(projectId))
             reviewSummaryService.create(projectId, review, countProjectReviews(projectId));
-        }
 
         return reviewMapper.toReviewResponse(review);
     }
@@ -73,10 +63,9 @@ public class ReviewService {
             field.setAccessible(true);
             Long value = (Long) field.get(evaluation);
 
-            if (value != null) {
-                totalSum += value;
-                numberOfFields++;
-            }
+            if (value == null) continue;
+            totalSum += value;
+            numberOfFields++;
         }
 
         if (numberOfFields == 0) return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
@@ -86,10 +75,7 @@ public class ReviewService {
     }
 
     public PaginationResponse<ReviewResponse> getFromProject(UUID projectId, @Valid PaginationRequest request, boolean isActive) {
-        List<String> validSortFields = List.of("clientAddress", "projectId", "createdAt", "average");
-        String defaultSortField = "createdAt";
-        Sort sort = filterUtil.getDirectionAndField(request.isDirection(), request.getSortBy(), validSortFields, defaultSortField);
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+        Pageable pageable = FilterUtils.buildPageable(request, Review.getValidSortFields(), Review.getDefaultSortField());
 
         Page<Review> reviews = isActive ?
                 reviewRepo.findByProjectId(projectId, pageable) :
@@ -109,15 +95,14 @@ public class ReviewService {
         return reviewRepo.countByProjectId(projectId);
     }
 
-    public PaginationResponse<ReviewResponse> getFromClient(String client, @Valid PaginationRequest request, boolean isActive) {
-        List<String> validSortFields = List.of("clientAddress", "projectId", "createdAt", "average");
-        String defaultSortField = "createdAt";
-        Sort sort = filterUtil.getDirectionAndField(request.isDirection(), request.getSortBy(), validSortFields, defaultSortField);
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+    public PaginationResponse<ReviewResponse> getFromClient(String clientAddress, @Valid PaginationRequest request, boolean isActive) {
+        String NormalizedClientAddress = NormalizationUtils.normalizeAddress(clientAddress);
+
+        Pageable pageable = FilterUtils.buildPageable(request, Review.getValidSortFields(), Review.getDefaultSortField());
 
         Page<Review> reviews = isActive ?
-                reviewRepo.findByClientAddress(client, pageable) :
-                reviewRepo.findByClientAddressAndIsActiveFalse(client, pageable);
+                reviewRepo.findByClientAddress(NormalizedClientAddress, pageable) :
+                reviewRepo.findByClientAddressAndIsActiveFalse(NormalizedClientAddress, pageable);
 
         return PaginationResponse.<ReviewResponse>builder()
                 .content(reviewMapper.toReviewResponseList(reviews.getContent()))
@@ -138,7 +123,9 @@ public class ReviewService {
     }
 
     public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
-        Review review = reviewRepo.findByClientAddressAndProjectIdAndIsActiveTrue(clientAddress, projectId)
+        String NormalizedClientAddress = NormalizationUtils.normalizeAddress(clientAddress);
+
+        Review review = reviewRepo.findByClientAddressAndProjectIdAndIsActiveTrue(NormalizedClientAddress, projectId)
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         return reviewMapper.toReviewResponse(review);
     }

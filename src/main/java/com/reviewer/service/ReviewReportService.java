@@ -6,7 +6,7 @@ import com.reviewer.dto.response.ReviewReportResponse;
 import com.reviewer.entity.ReviewReport;
 import com.reviewer.mapper.ReviewReportMapper;
 import com.reviewer.repository.ReviewReportRepo;
-import com.reviewer.util.FilterUtil;
+import com.reviewer.util.FilterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,14 +15,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ReviewReportService {
     private final ReviewReportRepo reviewReportRepo;
     private final ReviewReportMapper reviewReportMapper;
-    private final FilterUtil filterUtil;
 
     public ReviewReportResponse create(ReviewReportRequest request) {
         ReviewReport report = reviewReportRepo.findByClientAddressAndReviewId(request.getClientAddress(), request.getReviewId())
@@ -42,7 +40,7 @@ public class ReviewReportService {
     public List<ReviewReportResponse> getAllFiltered(PaginationRequest request) {
         List<String> validSortFields = List.of("clientAddress", "reviewId", "createdAt");
         String defaultSortField = "createdAt";
-        Sort sort = filterUtil.getDirectionAndField(request.isDirection(), request.getSortBy(), validSortFields, defaultSortField);
+        Sort sort = FilterUtils.getDirectionAndField(request.isDirection(), request.getSortBy(), validSortFields, defaultSortField);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         List<ReviewReport> list = reviewReportRepo.findAll(pageable).getContent();

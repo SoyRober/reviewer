@@ -29,4 +29,5 @@ public class ReviewResponse {
     private EvaluationResponse evaluation;
 
     private BigDecimal average;
+
 }
