@@ -54,10 +54,10 @@ public class Review {
 
     public static List<String> getValidSortFields() {
         return List.of(
-                Review.Fields.clientAddress,
-                Review.Fields.projectId,
-                Review.Fields.createdAt,
-                Review.Fields.average
+                Fields.clientAddress,
+                Fields.projectId,
+                Fields.createdAt,
+                Fields.average
         );
     }
 
