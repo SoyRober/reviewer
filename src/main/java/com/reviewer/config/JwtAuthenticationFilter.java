@@ -1,4 +1,4 @@
-package com.reviewer.configuration;
+package com.reviewer.config;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;

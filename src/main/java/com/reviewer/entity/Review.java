@@ -1,5 +1,6 @@
 package com.reviewer.entity;
 
+import com.reviewer.annotation.HhLowerCase;
 import com.reviewer.model.Evaluation;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
