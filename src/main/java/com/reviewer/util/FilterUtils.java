@@ -1,12 +1,14 @@
 package com.reviewer.util;
 
 import com.reviewer.dto.request.PaginationRequest;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
+@NoArgsConstructor
 public class FilterUtils {
     public static Sort getDirectionAndField(boolean directionBool, String sortBy, List<String> validSortByFields, String defaultSortByField) {
         Sort.Direction sortDirection = directionBool ? Sort.Direction.DESC : Sort.Direction.ASC;
