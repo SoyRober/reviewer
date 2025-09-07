@@ -12,7 +12,6 @@ import com.reviewer.mapper.ReviewMapper;
 import com.reviewer.model.Evaluation;
 import com.reviewer.repository.ReviewRepo;
 import com.reviewer.util.FilterUtils;
-import com.reviewer.util.NormalizationUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -96,13 +95,11 @@ public class ReviewService {
     }
 
     public PaginationResponse<ReviewResponse> getFromClient(String clientAddress, @Valid PaginationRequest request, boolean isActive) {
-        String NormalizedClientAddress = NormalizationUtils.normalizeAddress(clientAddress);
-
         Pageable pageable = FilterUtils.buildPageable(request, Review.getValidSortFields(), Review.getDefaultSortField());
 
         Page<Review> reviews = isActive ?
-                reviewRepo.findByClientAddress(NormalizedClientAddress, pageable) :
-                reviewRepo.findByClientAddressAndIsActiveFalse(NormalizedClientAddress, pageable);
+                reviewRepo.findByClientAddress(clientAddress, pageable) :
+                reviewRepo.findByClientAddressAndIsActiveFalse(clientAddress, pageable);
 
         return PaginationResponse.<ReviewResponse>builder()
                 .content(reviewMapper.toReviewResponseList(reviews.getContent()))
@@ -123,9 +120,7 @@ public class ReviewService {
     }
 
     public ReviewResponse getFromProjectAndClient(UUID projectId, String clientAddress) {
-        String NormalizedClientAddress = NormalizationUtils.normalizeAddress(clientAddress);
-
-        Review review = reviewRepo.findByClientAddressAndProjectIdAndIsActiveTrue(NormalizedClientAddress, projectId)
+        Review review = reviewRepo.findByClientAddressAndProjectIdAndIsActiveTrue(clientAddress, projectId)
                 .orElseThrow(() -> new NotFoundException("Review not found"));
         return reviewMapper.toReviewResponse(review);
     }
